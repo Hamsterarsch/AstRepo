@@ -7,7 +7,6 @@
 
 //Public---------------------------
 AASTCharacter::AASTCharacter() :
-	m_bCanJump{ true },
 	m_MaxJumpCount{ 2 }
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -42,16 +41,21 @@ void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	//Movement bindings
 	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &AASTCharacter::MoveForward);
 	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &AASTCharacter::MoveRight);
 
+	//Camera bindings
 	PlayerInputComponent->BindAxis(TEXT("CameraX"), this, &AASTCharacter::AddControlRotationYaw);
 	PlayerInputComponent->BindAxis(TEXT("CameraY"), this, &AASTCharacter::AddControlRotationPitch);
 
+	//Jump
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction(TEXT("Jump"), IE_Released, this, &ACharacter::StopJumping);
 
+	//Interact
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AASTCharacter::PerformInteract);
+
 
 }
 
@@ -59,6 +63,7 @@ void AASTCharacter::AddInteraction(const FInteractCallbackSignature &Event)
 {
 	m_InteractDelegate.Add(Event);
 	++m_InteractionCount;
+
 	//Todo: show interact interface here if interact count was previously 0
 
 
