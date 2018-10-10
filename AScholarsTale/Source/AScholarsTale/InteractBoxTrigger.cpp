@@ -7,30 +7,13 @@
 UInteractBoxTrigger::UInteractBoxTrigger()
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	//m_pTrigger = CreateDefaultSubobject<UBoxComponent>(TEXT("Trigger"));
 
+	//Overlap bindings.
 	OnComponentBeginOverlap.AddDynamic(this, &UInteractBoxTrigger::OnTriggerBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &UInteractBoxTrigger::OnTriggerEndOverlap);
-	//m_pTrigger->OnComponentEndOverlap
 
 
-}
 
-void UInteractBoxTrigger::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-
-}
-
-
-//Protected---------------------------
-
-void UInteractBoxTrigger::BeginPlay()
-{
-	Super::BeginPlay();
-
-	
 }
 
 
@@ -38,12 +21,14 @@ void UInteractBoxTrigger::BeginPlay()
 
 void UInteractBoxTrigger::OnTriggerBeginOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
+	//If overlapped was player...
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{		
 		UE_LOG(LogTemp, Warning, TEXT("UInteractBoxTrigger:: Try add"));
-		if (m_InteractCallback.IsBound())
+		//...add to interact delegate if bound.
+		if (m_InteractEvent.IsBound())
 		{
-			Player->AddInteraction(m_InteractCallback);
+			Player->AddInteraction(m_InteractEvent);
 		
 		}
 		
@@ -54,10 +39,12 @@ void UInteractBoxTrigger::OnTriggerBeginOverlap(UPrimitiveComponent *OverlappedC
 
 void UInteractBoxTrigger::OnTriggerEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
 {
+	//If other actor was player...
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{
+		//...remove event from interact delegate.
 		UE_LOG(LogTemp, Warning, TEXT("UInteractBoxTrigger:: Try remove"));
-		Player->RemoveInteraction(m_InteractCallback);
+		Player->RemoveInteraction(m_InteractEvent);
 
 	}
 
