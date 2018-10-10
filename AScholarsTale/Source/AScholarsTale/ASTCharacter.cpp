@@ -70,7 +70,7 @@ void AASTCharacter::RemoveInteraction(const FInteractCallbackSignature &Event)
 	{
 		if (m_InteractionCount <= 0)
 		{			
-			UE_LOG(AST_LogLogicError, Error, TEXT("No interaction callbacks remaining on remove!"));
+			UE_LOG(AST_LogLogicError, Error, TEXT("AASTCharacter:: No interaction callbacks remaining on remove!"));
 		
 		}
 
@@ -78,6 +78,11 @@ void AASTCharacter::RemoveInteraction(const FInteractCallbackSignature &Event)
 		--m_InteractionCount;
 
 		//Todo: hide interact widget on 0 interactions
+
+	}
+	else
+	{
+		UE_LOG(AST_LogInfo, Log, TEXT("AASTCharacter:: Tried to remove an interaction event that was not bound."));
 
 	}
 
