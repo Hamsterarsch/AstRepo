@@ -4,3 +4,5 @@
 
 #include "CoreMinimal.h"
 
+DECLARE_LOG_CATEGORY_EXTERN(AST_LogLogicError, Error, Error);
+DECLARE_LOG_CATEGORY_EXTERN(AST_LogInfo, Verbose, Verbose);
