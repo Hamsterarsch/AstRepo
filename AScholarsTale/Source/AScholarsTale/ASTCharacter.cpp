@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "ASTCharacter.h"
 #include "AScholarsTale.h"
-#include "GameFramework/CharacterMovementComponent.h"
 #include "Components/InputComponent.h"
 
 
 //Public---------------------------
-AASTCharacter::AASTCharacter() :
+AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
+	Super(Initializer.SetDefaultSubobjectClass<UASTCharacterMovementComponent>(Super::CharacterMovementComponentName)),
 	m_MaxJumpCount{ 2 }
 {
 	PrimaryActorTick.bCanEverTick = true;

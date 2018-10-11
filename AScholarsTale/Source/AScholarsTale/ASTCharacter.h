@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "ASTCharacterMovementComponent.h"
 #include "ASTCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractSignature);
@@ -17,7 +18,7 @@ class ASCHOLARSTALE_API AASTCharacter : public ACharacter
 
 public:
 	//Ctor
-	AASTCharacter();
+	AASTCharacter(const class FObjectInitializer &Initializer);
 
 	//Property dependent initialization
 	virtual void PostInitializeComponents() override;  
