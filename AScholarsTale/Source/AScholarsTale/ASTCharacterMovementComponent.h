@@ -6,7 +6,7 @@
 #include "ASTCharacterMovementComponent.generated.h"
 
 UENUM(BlueprintType)
-enum class ASTMovementMode : uint8
+enum class EASTMovementMode : uint8
 {
 	None UMETA(DisplayName="None"),
 	Gliding UMETA(DisplayName="Gliding")
@@ -27,7 +27,14 @@ public:
 protected:
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
+	UPROPERTY(EditAnywhere)
+		float GravityCoeff = 1;
 
+	UPROPERTY(EditAnywhere)
+		float LiftAmount = 10;
+
+	UPROPERTY(EditAnywhere)
+		float ForwardDrift = 300;
 
 private:
 	

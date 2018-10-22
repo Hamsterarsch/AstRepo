@@ -11,7 +11,7 @@ DECLARE_DYNAMIC_DELEGATE(FInteractCallbackSignature);
 
 //Class representing a player character for AST
 //Input bindings executed via PlayerInputComponent
-UCLASS()
+UCLASS(Blueprintable, Abstract)
 class ASCHOLARSTALE_API AASTCharacter : public ACharacter
 {
 	GENERATED_BODY()

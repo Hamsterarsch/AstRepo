@@ -56,6 +56,7 @@ void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	//Interact
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AASTCharacter::PerformInteract);
 
+	
 
 }
 
