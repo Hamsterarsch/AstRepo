@@ -43,6 +43,8 @@ protected:
 	//Empty
 	virtual void BeginPlay() override;
 
+	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
 
 
 private:
@@ -64,6 +66,12 @@ private:
 	//@param AxisValue: The magnitude of the movement.
 	void AddControlRotationYaw(float AxisValue);
 
+	void StartGliding();
+
+	void StopGliding();
+
+
+
 	//todo
 	void Jump();
 
@@ -81,6 +89,9 @@ private:
 
 	//todo
 	unsigned int m_CurrentJumpCount;
+
+	uint32 m_PreGlideJumpCount;
+			
 
 	//todo
 	UPROPERTY(EditDefaultsOnly)

@@ -27,17 +27,26 @@ public:
 protected:
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
-	UPROPERTY(EditAnywhere)
-		float GravityCoeff = 1;
+	virtual void SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode = 0) override;
+	//virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
 	UPROPERTY(EditAnywhere)
-		float LiftAmount = 10;
+		float m_GravityCoeff{ 1 };
 
 	UPROPERTY(EditAnywhere)
-		float ForwardDrift = 300;
+		float m_LiftAmount{ 0.85 };
+
+	UPROPERTY(EditAnywhere)
+		float m_ForwardDrift{ 500 };
+
+	UPROPERTY(EditAnywhere)
+		float m_GlidingLeanSpeed{ 400 };
+
+	UPROPERTY(EditAnywhere)
+		float m_GlidingTurnSpeed{ 1.125 };
 
 private:
-	
+	int32 m_PreGlidingJumpCount;
 
 
 	

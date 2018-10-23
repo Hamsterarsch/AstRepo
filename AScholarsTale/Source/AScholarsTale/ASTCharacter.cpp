@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "ASTCharacter.h"
 #include "AScholarsTale.h"
+#include "ASTPlayerController.h"
+#include "Engine/World.h"
 #include "Components/InputComponent.h"
 
 
@@ -56,6 +58,9 @@ void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	//Interact
 	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &AASTCharacter::PerformInteract);
 
+	//Glide
+	PlayerInputComponent->BindAction(TEXT("Gliding"), IE_Pressed, this, &AASTCharacter::StartGliding);
+	PlayerInputComponent->BindAction(TEXT("Gliding"), IE_Released, this, &AASTCharacter::StopGliding);
 	
 
 }
@@ -103,6 +108,59 @@ void AASTCharacter::BeginPlay()
 	
 }
 
+void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
+{
+	if (!bPressedJump || !GetCharacterMovement()->IsFalling())
+	{
+		UE_LOG(LogTemp, Log, TEXT("Stats------------------ : Cur- %01i, Las- %02i, CurCm- %03i, LasCm- %04i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
+		if ( PreviousMovementMode == MOVE_Custom || GetCharacterMovement()->MovementMode == MOVE_Custom )
+		{
+			UE_LOG(LogTemp, Log, TEXT("CUSTOM"));
+			if( (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding )
+			{
+				// Salakis
+				m_PreGlideJumpCount = JumpCurrentCount;
+				UE_LOG(LogTemp, Log, TEXT("PRE_GLIDING"));
+
+			}
+			else if ( (EASTMovementMode)PreviousCustomMode == EASTMovementMode::Gliding)
+			{
+				JumpCurrentCount = m_PreGlideJumpCount;
+				UE_LOG(LogTemp, Log, TEXT("POST_GLIDING"));
+
+			}
+			else
+			{
+				ResetJumpState();
+				UE_LOG(LogTemp, Log, TEXT("NONGLIDING"));
+
+			}
+
+			//UE_LOG(LogTemp, Log, TEXT("CustomAR_0 : %01i, %02i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
+
+		}
+		else
+		{
+			ResetJumpState();
+			UE_LOG(LogTemp, Log, TEXT("Reset_1"));
+			//UE_LOG(LogTemp, Log, TEXT("Reset_0 : %01i, %02i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
+
+		}
+
+
+	}
+
+	// Recored jump force start time for proxies. Allows us to expire the jump even if not continually ticking down a timer.
+	if (bProxyIsJumpForceApplied && GetCharacterMovement()->IsFalling())
+	{
+		ProxyJumpForceStartedTime = GetWorld()->GetTimeSeconds();
+	}
+
+	K2_OnMovementModeChanged(PreviousMovementMode, GetCharacterMovement()->MovementMode, PreviousCustomMode, GetCharacterMovement()->CustomMovementMode);
+	MovementModeChangedDelegate.Broadcast(this, PreviousMovementMode, PreviousCustomMode);
+
+}
+
 
 //Private-------------------------------
 void AASTCharacter::MoveRight(const float AxisValue)
@@ -110,6 +168,7 @@ void AASTCharacter::MoveRight(const float AxisValue)
 	if (!FMath::IsNearlyEqual(AxisValue, 0) && InputEnabled())
 	{
 		GetMovementComponent()->AddInputVector(GetActorRightVector() * AxisValue);
+
 
 	}
 
@@ -146,6 +205,31 @@ void AASTCharacter::AddControlRotationYaw(float AxisValue)
 
 	}
 
+
+}
+
+void AASTCharacter::StartGliding()
+{
+	if (auto *PC = Cast<AASTPlayerController>(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Click"));
+		PC->EnableGlidingCamera();
+		GetCharacterMovement()->SetMovementMode(MOVE_Custom, (uint8)EASTMovementMode::Gliding);
+
+	}
+
+}
+
+void AASTCharacter::StopGliding()
+{
+	if (auto *PC = Cast<AASTPlayerController>(Controller))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Unclick"));
+		
+		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+		PC->DisableGlidingCamera();
+
+	}
 
 }
 

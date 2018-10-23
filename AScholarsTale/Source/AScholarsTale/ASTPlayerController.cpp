@@ -17,14 +17,16 @@ void AASTPlayerController::EnableGlidingCamera()
 	
 	if (auto *CameraManager = Cast<AASTCameraManager>(PlayerCameraManager))
 	{
+		InputPitchScale = m_GlidingPitchInputScale;
+		InputYawScale = m_GlidingYawInputScale;
 		CameraManager->UseGlidingViewAngles(ControlRotation);//lerping induces cmaera manager min/max-angle error every 2nd gliding attempt
 
 		/*
 		m_ControlRotationLerpTarget = ControlRotation;
 		m_ControlRotationLerpTarget.Pitch = (CameraManager->m_GlidingViewPitchMin + CameraManager->m_GlidingViewPitchMax) *.5f;
 		m_bControlLerpComplete = false;
-		m_bGlidingCameraEnabled = true;
 		*/
+		m_bGlidingCameraEnabled = true;
 	}
 	
 	
@@ -43,6 +45,9 @@ void AASTPlayerController::DisableGlidingCamera()
 	}
 	m_bGlidingCameraEnabled = false;
 	m_ControlRotationLerpTarget = ControlRotation;
+
+	InputPitchScale = m_StandardPitchInputScale;
+	InputYawScale = m_StandardYawInputScale;
 
 
 }
@@ -65,6 +70,41 @@ void AASTPlayerController::LerpControlRotationRoll(const float TargetRoll, const
 
 }
 
+void AASTPlayerController::AddGlidingCameraYawInput(float Val)
+{
+	if (m_bGlidingCameraEnabled)
+	{
+		if (auto *CM = Cast<AASTCameraManager>(PlayerCameraManager))
+		{
+			CM->AddYawInput(Val);
+			this->AddYawInput(Val);
+			//UE_LOG(LogTemp, Log, TEXT("pc yaw add"));
+
+		}
+		//UE_LOG(LogTemp, Log, TEXT("pc glding cam input"));
+
+	}
+
+
+}
+
+void AASTPlayerController::AddGlidingCameraPitchInput(float Val)
+{
+	if (m_bGlidingCameraEnabled)
+	{
+		if (auto *CM = Cast<AASTCameraManager>(PlayerCameraManager))
+		{
+			CM->AddPitchInput(Val);
+			this->AddPitchInput(Val);
+
+		}
+
+	}
+	
+
+}
+
+ 
 
 //Protected---------------
 
@@ -103,3 +143,11 @@ void AASTPlayerController::Tick(const float DeltaTime)
 
 }
 
+void AASTPlayerController::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	m_StandardPitchInputScale = InputPitchScale;
+	m_StandardYawInputScale = InputYawScale;
+
+}

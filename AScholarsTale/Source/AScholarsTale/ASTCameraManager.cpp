@@ -43,6 +43,23 @@ void AASTCameraManager::PostInitializeComponents()
 
 }
 
+void AASTCameraManager::AddYawInput(float Val)
+{
+	ViewYawMax += Val;
+	ViewYawMin += Val;
+	//UE_LOG(LogTemp, Log, TEXT("_yaw"));
+
+}
+
+void AASTCameraManager::AddPitchInput(float Val)
+{
+	//ViewPitchMax = FMath::Clamp(ViewPitchMax + Val, ;
+	ViewPitchMin += Val;
+
+
+}
+
+
 /*
 void AASTCameraManager::LimitViewPitch(FRotator &ViewRotation, float InViewPitchMin, float InViewPitchMax)
 {

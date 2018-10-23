@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "ASTCharacterMovementComponent.h"
+#include "ASTPlayerController.h"
 #include "GameFramework/Character.h"
 
 
@@ -14,12 +15,20 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 	{
 		auto CustomMode = (EASTMovementMode)CustomMovementMode;
 		if (CustomMode == decltype(CustomMode)::Gliding)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("UASTCharacterCustomMovementComponent:: GlidingMode"));
+		{			
+			auto InputVector = GetLastInputVector();// ConsumeInputVector();			
+			auto LocalInput = CharacterOwner->GetActorTransform().Inverse().TransformVectorNoScale(InputVector);
 
+			if (auto *PC = Cast<AASTPlayerController>(CharacterOwner->GetController()))
+			{
+				PC->AddGlidingCameraYawInput((LocalInput.Y * m_GlidingTurnSpeed) / 50);
+				//UE_LOG(LogTemp, Log, TEXT("LocalInput: %01s "), *LocalInput.ToString());
+
+			}
+			
 			//Gliding stats
-			Velocity = CharacterOwner->GetActorForwardVector() * ForwardDrift;			
-			Velocity.Z = GetGravityZ() * 0.125f * GravityCoeff;
+			Velocity = CharacterOwner->GetActorForwardVector() * (m_ForwardDrift + (m_GlidingLeanSpeed * LocalInput.X));
+			Velocity.Z = GetGravityZ() * m_GravityCoeff + (-GetGravityZ() * m_LiftAmount);
 					
 			//State updates
 			++Iterations;
@@ -39,6 +48,8 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 				const FVector VelDir = Velocity.GetSafeNormal();
 				//Dot
 				const float UpDown = GravDir | VelDir;
+				  
+				
 
 				bool bSteppedUp = false;
 				//Has downward velocity and upward surface normal that is stepable
@@ -61,7 +72,7 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 					HandleImpact(Hit, DeltaTime, Adjusted);
 
 					//Change to walking mode (end of gliding == earth touch)
-					MovementMode = MOVE_Walking;
+					SetMovementMode(MOVE_Falling);
 
 				}
 			
@@ -74,6 +85,17 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 
 
 }
+
+void UASTCharacterMovementComponent::SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode)
+{
+	if ( !(NewMovementMode == MOVE_Flying && (MovementMode == MOVE_Custom && CustomMovementMode == (uint8)EASTMovementMode::Gliding)) )
+	{
+		Super::SetMovementMode(NewMovementMode, NewCustomMode);
+
+	}
+
+}
+
 
 
 //Private-----------------

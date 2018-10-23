@@ -25,8 +25,14 @@ public:
 		float m_GlidingViewPitchMin{ -66 };
 
 	UPROPERTY(EditAnywhere)
+		float m_GlidingLeanAngle{ 15 };
+
+	UPROPERTY(EditAnywhere)
 		float m_GlidingTurnCameraRollAngle{ 15 };
 
+	void AddYawInput(float Val);
+
+	void AddPitchInput(float Val);
 
 protected:
 	virtual void PostInitializeComponents() override;
