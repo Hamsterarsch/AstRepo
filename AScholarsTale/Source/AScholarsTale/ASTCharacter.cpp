@@ -36,7 +36,7 @@ void AASTCharacter::Tick(float DeltaTime)
 
 	}
 
-
+	
 }
 
 void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -144,11 +144,11 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 		else
 		{
 			ResetJumpState();
-			UE_LOG(LogTemp, Log, TEXT("Reset_1"));
+			//UE_LOG(LogTemp, Log, TEXT("Reset_1"));
 			//UE_LOG(LogTemp, Log, TEXT("Reset_0 : %01i, %02i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
 
 		}
-
+		
 
 	}
 
@@ -214,7 +214,7 @@ void AASTCharacter::StartGliding()
 {
 	if (auto *PC = Cast<AASTPlayerController>(Controller))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Click"));
+		//UE_LOG(LogTemp, Warning, TEXT("Click"));
 		PC->EnableGlidingCamera();
 		GetCharacterMovement()->SetMovementMode(MOVE_Custom, (uint8)EASTMovementMode::Gliding);
 
@@ -226,7 +226,7 @@ void AASTCharacter::StopGliding()
 {
 	if (auto *PC = Cast<AASTPlayerController>(Controller))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Unclick"));
+		//UE_LOG(LogTemp, Warning, TEXT("Unclick"));
 		
 		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 		PC->DisableGlidingCamera();
