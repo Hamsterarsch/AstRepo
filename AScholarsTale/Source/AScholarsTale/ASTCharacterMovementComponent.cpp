@@ -22,6 +22,7 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 			if (auto *PC = Cast<AASTPlayerController>(CharacterOwner->GetController()))
 			{
 				PC->AddGlidingCameraYawInput((LocalInput.Y * m_GlidingTurnSpeed) / 50);
+				PC->AddGlidingCameraPitchInput(LocalInput.X);
 				//UE_LOG(LogTemp, Log, TEXT("LocalInput: %01s "), *LocalInput.ToString());
 
 			}

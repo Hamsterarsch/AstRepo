@@ -44,6 +44,7 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		float m_GlidingTurnSpeed{ 1.125 };
+		
 
 private:
 	int32 m_PreGlidingJumpCount;

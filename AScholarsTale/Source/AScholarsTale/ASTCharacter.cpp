@@ -100,7 +100,9 @@ void AASTCharacter::RemoveInteraction(const FInteractCallbackSignature &Event)
 
 }
 
+
 //Protected-------------------------------------------
+
 void AASTCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -112,27 +114,27 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 {
 	if (!bPressedJump || !GetCharacterMovement()->IsFalling())
 	{
-		UE_LOG(LogTemp, Log, TEXT("Stats------------------ : Cur- %01i, Las- %02i, CurCm- %03i, LasCm- %04i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
+		//UE_LOG(LogTemp, Log, TEXT("Stats------------------ : Cur- %01i, Las- %02i, CurCm- %03i, LasCm- %04i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
 		if ( PreviousMovementMode == MOVE_Custom || GetCharacterMovement()->MovementMode == MOVE_Custom )
 		{
-			UE_LOG(LogTemp, Log, TEXT("CUSTOM"));
+			//UE_LOG(LogTemp, Log, TEXT("CUSTOM"));
 			if( (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding )
 			{
 				// Salakis
 				m_PreGlideJumpCount = JumpCurrentCount;
-				UE_LOG(LogTemp, Log, TEXT("PRE_GLIDING"));
+				//UE_LOG(LogTemp, Log, TEXT("PRE_GLIDING"));
 
 			}
 			else if ( (EASTMovementMode)PreviousCustomMode == EASTMovementMode::Gliding)
 			{
 				JumpCurrentCount = m_PreGlideJumpCount;
-				UE_LOG(LogTemp, Log, TEXT("POST_GLIDING"));
+				//UE_LOG(LogTemp, Log, TEXT("POST_GLIDING"));
 
 			}
 			else
 			{
 				ResetJumpState();
-				UE_LOG(LogTemp, Log, TEXT("NONGLIDING"));
+				//UE_LOG(LogTemp, Log, TEXT("NONGLIDING"));
 
 			}
 

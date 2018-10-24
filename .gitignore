@@ -39,6 +39,7 @@
 
 # Builds
 Build
+DefaultEditor.ini
 
 #Visual studio files
 *.pdb
