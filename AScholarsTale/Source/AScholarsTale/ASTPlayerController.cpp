@@ -13,8 +13,7 @@ AASTPlayerController::AASTPlayerController()
 }
 
 void AASTPlayerController::EnableGlidingCamera()
-{
-	
+{	
 	if (auto *CameraManager = Cast<AASTCameraManager>(PlayerCameraManager))
 	{
 		InputPitchScale = m_GlidingPitchInputScale;
@@ -28,10 +27,6 @@ void AASTPlayerController::EnableGlidingCamera()
 		*/
 		m_bGlidingCameraEnabled = true;
 	}
-	
-	
-	
-	
 
 	
 }
@@ -95,7 +90,6 @@ void AASTPlayerController::AddGlidingCameraPitchInput(float Val)
 		if (auto *CM = Cast<AASTCameraManager>(PlayerCameraManager))
 		{
 			CM->AddPitchInput(Val);
-			this->AddPitchInput(Val);
 
 		}
 
@@ -103,7 +97,6 @@ void AASTPlayerController::AddGlidingCameraPitchInput(float Val)
 	
 
 }
-
  
 
 //Protected---------------
@@ -138,7 +131,6 @@ void AASTPlayerController::Tick(const float DeltaTime)
 		m_bControlLerpLastTick = false;
 
 	}
-
 
 
 }
