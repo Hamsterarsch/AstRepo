@@ -121,6 +121,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 			if( (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding )
 			{
 				// Salakis
+				GetCharacterMovement()->Velocity = FVector::ZeroVector;
 				m_PreGlideJumpCount = JumpCurrentCount;
 				//UE_LOG(LogTemp, Log, TEXT("PRE_GLIDING"));
 

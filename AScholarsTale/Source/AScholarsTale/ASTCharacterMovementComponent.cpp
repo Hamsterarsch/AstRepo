@@ -13,6 +13,7 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 {
 	if (CharacterOwner)
 	{
+		UE_LOG(LogTemp, Log, TEXT("Offset: %01s "), *m_GlidingForceOffset.ToString());
 		auto CustomMode = (EASTMovementMode)CustomMovementMode;
 		if (CustomMode == decltype(CustomMode)::Gliding)
 		{			
@@ -27,10 +28,15 @@ void UASTCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iteration
 
 			}
 			
-			//Gliding stats
-			Velocity = CharacterOwner->GetActorForwardVector() * (m_ForwardDrift + (m_GlidingLeanSpeed * LocalInput.X));
-			Velocity.Z = GetGravityZ() * m_GravityCoeff + (-GetGravityZ() * m_LiftAmount);
-					
+			//Gliding stats			
+			//ApplyAccumulatedForces(DeltaTime);
+			//Velocity.X *= .99f;
+			//Velocity.Y *= .99f;
+			Velocity = (CharacterOwner->GetActorForwardVector() * (m_ForwardDrift + (m_GlidingLeanSpeed * LocalInput.X))) + m_GlidingForceOffset;
+			
+			Velocity.Z = (GetGravityZ() * m_GravityCoeff + -GetGravityZ() * m_LiftAmount) + m_GlidingForceOffset.Z;
+			//ApplyVelocityBraking()
+
 			//State updates
 			++Iterations;
 			bJustTeleported = false;

@@ -7,6 +7,9 @@
 
 AAirstream::AAirstream()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.TickInterval = .125f;
+
 	OnActorBeginOverlap.AddDynamic(this, &AAirstream::OnAirstreamBeginOverlap);
 	OnActorEndOverlap.AddDynamic(this, &AAirstream::OnAirstreamEndOverlap);
 	
@@ -17,11 +20,15 @@ AAirstream::AAirstream()
 
 void AAirstream::OnAirstreamBeginOverlap(AActor *OverlappedActor, AActor *OtherActor)
 {	
-	m_pCharacter = Cast< std::remove_pointer_t<decltype(m_pCharacter)> >(OtherActor);
-	if ( m_pCharacter )
+	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{
-		m_bIsOverlapping = true;
-		
+		m_pMovementComp = Cast< std::remove_pointer_t<decltype(m_pMovementComp)> >(Player->GetMovementComponent());
+		if (m_pMovementComp)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Begin"));
+			m_bIsOverlapping = true;
+			m_pMovementComp->AddGlidingForceOffset({ 0, 0, m_Drift });
+		}
 
 	}
 
@@ -30,9 +37,15 @@ void AAirstream::OnAirstreamBeginOverlap(AActor *OverlappedActor, AActor *OtherA
 
 void AAirstream::OnAirstreamEndOverlap(AActor *OverlappedActor, AActor *OtherActor)
 {
-	if ( OtherActor->IsA< std::remove_pointer_t<decltype(m_pCharacter)> >() )
+	if ( OtherActor->IsA< AASTCharacter >() )
 	{
 		m_bIsOverlapping = false;
+		if (m_pMovementComp)
+		{
+			UE_LOG(LogTemp, Log, TEXT("End"));
+			m_pMovementComp->AddGlidingForceOffset({ 0,0, -m_Drift });
+
+		}
 
 	}
 
@@ -45,7 +58,7 @@ void AAirstream::Tick(const float DeltaTime)
 
 	if (m_bIsOverlapping)
 	{
-		m_pCharacter->GetCharacterMovement()->AddForce({ 0,0, m_Drift });
+		
 
 	}
 

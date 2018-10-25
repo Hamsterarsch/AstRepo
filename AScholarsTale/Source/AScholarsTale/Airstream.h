@@ -25,10 +25,10 @@ protected:
 	bool m_bIsOverlapping;
 
 	UPROPERTY()
-		class AASTCharacter *m_pCharacter;
+		class UASTCharacterMovementComponent *m_pMovementComp;
 
 	UPROPERTY(EditAnywhere)
-		float m_Drift{ 100 };
+		float m_Drift{ 1800 };
 
 	
 };

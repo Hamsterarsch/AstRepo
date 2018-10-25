@@ -22,6 +22,7 @@ class ASCHOLARSTALE_API UASTCharacterMovementComponent : public UCharacterMoveme
 	GENERATED_BODY()
 	
 public:
+	void AddGlidingForceOffset(const FVector &ForceOffset) { m_GlidingForceOffset += ForceOffset; }
 
 
 protected:
@@ -30,24 +31,27 @@ protected:
 	virtual void SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode = 0) override;
 	//virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+
+
 	UPROPERTY(EditAnywhere)
 		float m_GravityCoeff{ 1 };
 
 	UPROPERTY(EditAnywhere)
-		float m_LiftAmount{ 0.85 };
+		float m_LiftAmount{ 0.9 };
 
 	UPROPERTY(EditAnywhere)
-		float m_ForwardDrift{ 500 };
+		float m_ForwardDrift{ 700 };
 
 	UPROPERTY(EditAnywhere)
 		float m_GlidingLeanSpeed{ 400 };
 
 	UPROPERTY(EditAnywhere)
-		float m_GlidingTurnSpeed{ 1.125 };
+		float m_GlidingTurnSpeed{ 1.75 };
 		
 
 private:
 	int32 m_PreGlidingJumpCount;
+	FVector m_GlidingForceOffset{ EForceInit::ForceInitToZero };
 
 
 	
