@@ -112,55 +112,57 @@ void AASTCharacter::BeginPlay()
 
 void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
-	if (!bPressedJump || !GetCharacterMovement()->IsFalling())
+	UE_LOG(AST_Movement, Verbose, TEXT("---------OnMovementChanged_Stats------------------\n CurrentMode: %01i, LastMode: %02i, CurrentCustom: %03i, LastCustom: %04i"), 
+	GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
+	
+	//Handling for custom movement modes
+	if ( PreviousMovementMode == MOVE_Custom || GetCharacterMovement()->MovementMode == MOVE_Custom )
 	{
-		//UE_LOG(LogTemp, Log, TEXT("Stats------------------ : Cur- %01i, Las- %02i, CurCm- %03i, LasCm- %04i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
-		if ( PreviousMovementMode == MOVE_Custom || GetCharacterMovement()->MovementMode == MOVE_Custom )
+		if( (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding )
 		{
-			//UE_LOG(LogTemp, Log, TEXT("CUSTOM"));
-			if( (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding )
-			{
-				// Salakis
-				GetCharacterMovement()->Velocity = FVector::ZeroVector;
-				m_PreGlideJumpCount = JumpCurrentCount;
-				//UE_LOG(LogTemp, Log, TEXT("PRE_GLIDING"));
+			//Null velocity so it does not influence gliding computations.
+			GetCharacterMovement()->Velocity = FVector::ZeroVector;
+			
+			//Safe the remaining jumps on gliding for restore.
+			m_PreGlideJumpCount = JumpCurrentCount;
+			UE_LOG(AST_Movement, Verbose, TEXT("Entering gliding movement"));
 
-			}
-			else if ( (EASTMovementMode)PreviousCustomMode == EASTMovementMode::Gliding)
-			{
-				JumpCurrentCount = m_PreGlideJumpCount;
-				//UE_LOG(LogTemp, Log, TEXT("POST_GLIDING"));
-
-			}
-			else
-			{
-				ResetJumpState();
-				//UE_LOG(LogTemp, Log, TEXT("NONGLIDING"));
-
-			}
-
-			//UE_LOG(LogTemp, Log, TEXT("CustomAR_0 : %01i, %02i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
+		}
+		else if ( (EASTMovementMode)PreviousCustomMode == EASTMovementMode::Gliding)
+		{
+			//Restore jump count when leavin gliding.
+			JumpCurrentCount = m_PreGlideJumpCount;
+			UE_LOG(AST_Movement, Log, TEXT("Leaving gliding movement"));
 
 		}
 		else
-		{
-			ResetJumpState();
-			//UE_LOG(LogTemp, Log, TEXT("Reset_1"));
-			//UE_LOG(LogTemp, Log, TEXT("Reset_0 : %01i, %02i"), GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
+		{				
+			UE_LOG(AST_Movement, Warning, TEXT("Custom movement: None"));
 
 		}
-		
 
 	}
+	else if ( !bPressedJump || !GetCharacterMovement()->IsFalling() )
+	{
+		//Reset jump state for non custom modes.
+		ResetJumpState();
 
+		UE_LOG(AST_Movement, Verbose, TEXT("Reseting jump state: MovementMode: %01i, PreviousMovementMode: %02i"), 
+		GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
+
+	}
+		
 	// Recored jump force start time for proxies. Allows us to expire the jump even if not continually ticking down a timer.
 	if (bProxyIsJumpForceApplied && GetCharacterMovement()->IsFalling())
 	{
 		ProxyJumpForceStartedTime = GetWorld()->GetTimeSeconds();
+
 	}
 
+	//Propagate blueprint events.
 	K2_OnMovementModeChanged(PreviousMovementMode, GetCharacterMovement()->MovementMode, PreviousCustomMode, GetCharacterMovement()->CustomMovementMode);
 	MovementModeChangedDelegate.Broadcast(this, PreviousMovementMode, PreviousCustomMode);
+
 
 }
 
