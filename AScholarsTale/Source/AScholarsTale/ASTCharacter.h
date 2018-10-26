@@ -38,7 +38,22 @@ public:
 	//@param Event: The event that should be removed from the interact delegate.
 	UFUNCTION(BlueprintCallable)
 		void RemoveInteraction(const FInteractCallbackSignature &Event);
+
+	UFUNCTION(BlueprintCallable)
+		void OnRopeEntered(const class ARope *pRope);
+
+	UFUNCTION(BlueprintCallable)
+		void OnRopeLeft();
+
+	UFUNCTION(BlueprintCallable)
+		void TryEnterRopingMode();
+
+	UFUNCTION(BlueprintCallable)
+		void LeaveRopingMode();
 	
+	UPROPERTY()
+		const class ARope *m_pTargetRope;
+
 protected:
 	//Empty
 	virtual void BeginPlay() override;

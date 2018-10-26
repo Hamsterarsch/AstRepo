@@ -3,6 +3,7 @@
 #include "AScholarsTale.h"
 #include "ASTPlayerController.h"
 #include "Engine/World.h"
+#include "Rope.h"
 #include "Components/InputComponent.h"
 
 
@@ -62,6 +63,9 @@ void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	PlayerInputComponent->BindAction(TEXT("Gliding"), IE_Pressed, this, &AASTCharacter::StartGliding);
 	PlayerInputComponent->BindAction(TEXT("Gliding"), IE_Released, this, &AASTCharacter::StopGliding);
 	
+	//Rope
+	PlayerInputComponent->BindAction(TEXT("RopeGrab"), IE_Pressed, this, &AASTCharacter::TryEnterRopingMode); 
+	PlayerInputComponent->BindAction(TEXT("RopeGrab"), IE_Released, this, &AASTCharacter::LeaveRopingMode);
 
 }
 
@@ -100,6 +104,48 @@ void AASTCharacter::RemoveInteraction(const FInteractCallbackSignature &Event)
 
 }
 
+void AASTCharacter::TryEnterRopingMode()
+{
+	if (m_pTargetRope)
+	{
+		if (auto *MC = Cast< UASTCharacterMovementComponent >(GetCharacterMovement()))
+		{
+			MC->m_RopingAttachmentPoint = m_pTargetRope->GetActorLocation();
+			MC->SetMovementMode(EMovementMode::MOVE_Custom, (uint8)EASTMovementMode::Roping);
+
+		}
+	
+	}
+
+
+}
+
+void AASTCharacter::LeaveRopingMode()
+{
+	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Custom && (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Roping)
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
+	
+	}
+
+
+}
+
+void AASTCharacter::OnRopeEntered(const ARope *pRope)
+{
+	m_pTargetRope = pRope;
+	UE_LOG(LogTemp, Log, TEXT("RopeEntered"));
+
+}
+
+void AASTCharacter::OnRopeLeft()
+{
+	m_pTargetRope = nullptr;
+	UE_LOG(LogTemp, Log, TEXT("RopeLeft"));
+
+}
+
+
 
 //Protected-------------------------------------------
 
@@ -116,9 +162,79 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 	GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
 	
 	//Handling for custom movement modes
+	if ( PreviousMovementMode == MOVE_Custom )
+	{
+		auto PreviousCustomModeTyped = (EASTMovementMode)PreviousCustomMode;
+		if (PreviousCustomModeTyped == EASTMovementMode::Gliding || PreviousCustomModeTyped == EASTMovementMode::Roping)
+		{
+			JumpCurrentCount = m_PreGlideJumpCount;
+			UE_LOG(AST_Movement, Log, TEXT("Leaving custom movement, jump restore"));
+
+		}
+
+	}
+
+	if (GetCharacterMovement()->MovementMode == MOVE_Custom)
+	{
+		auto CurrentCustomModeTyped = (EASTMovementMode)GetCharacterMovement()->CustomMovementMode;
+
+		//Enter cases
+		switch (CurrentCustomModeTyped)
+		{
+		case EASTMovementMode::Gliding:
+
+			//Null velocity so it does not influence gliding computations.
+			GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+			//Safe the remaining jumps on gliding for restore.
+			m_PreGlideJumpCount = JumpCurrentCount;
+			UE_LOG(AST_Movement, Verbose, TEXT("Entering gliding movement"));
+			break;
+
+		case EASTMovementMode::Roping:
+			m_PreGlideJumpCount = JumpCurrentCount;
+			GetCharacterMovement()->Velocity = FVector::ZeroVector;
+			UE_LOG(AST_Movement, Verbose, TEXT("Entering roping movement"));
+			break;
+
+		default:
+			UE_LOG(AST_Movement, Warning, TEXT("Entering custom movement: None"));
+			break;
+
+		}
+
+	}
+
+	if (GetCharacterMovement()->MovementMode != MOVE_Custom && PreviousMovementMode != MOVE_Custom)
+	{
+		if( !bPressedJump || !GetCharacterMovement()->IsFalling() )
+		{
+			ResetJumpState();
+
+			UE_LOG(AST_Movement, Verbose, TEXT("Reseting jump state: MovementMode: %01i, PreviousMovementMode: %02i"),
+			GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
+
+		}
+
+	}
+
+	// Recored jump force start time for proxies. Allows us to expire the jump even if not continually ticking down a timer.
+	if (bProxyIsJumpForceApplied && GetCharacterMovement()->IsFalling())
+	{
+		ProxyJumpForceStartedTime = GetWorld()->GetTimeSeconds();
+
+	}
+
+	//Propagate blueprint events.
+	K2_OnMovementModeChanged(PreviousMovementMode, GetCharacterMovement()->MovementMode, PreviousCustomMode, GetCharacterMovement()->CustomMovementMode);
+	MovementModeChangedDelegate.Broadcast(this, PreviousMovementMode, PreviousCustomMode);
+	
+	/*
 	if ( PreviousMovementMode == MOVE_Custom || GetCharacterMovement()->MovementMode == MOVE_Custom )
 	{
-		if( (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding )
+		auto CurrentCustomModeTyped = (EASTMovementMode)GetCharacterMovement()->CustomMovementMode;
+		
+		if(  CurrentCustomModeTyped == EASTMovementMode::Gliding )
 		{
 			//Null velocity so it does not influence gliding computations.
 			GetCharacterMovement()->Velocity = FVector::ZeroVector;
@@ -130,7 +246,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 		}
 		else if ( (EASTMovementMode)PreviousCustomMode == EASTMovementMode::Gliding)
 		{
-			//Restore jump count when leavin gliding.
+			//Restore jump count when leaving gliding.
 			JumpCurrentCount = m_PreGlideJumpCount;
 			UE_LOG(AST_Movement, Log, TEXT("Leaving gliding movement"));
 
@@ -151,18 +267,8 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 		GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
 
 	}
-		
-	// Recored jump force start time for proxies. Allows us to expire the jump even if not continually ticking down a timer.
-	if (bProxyIsJumpForceApplied && GetCharacterMovement()->IsFalling())
-	{
-		ProxyJumpForceStartedTime = GetWorld()->GetTimeSeconds();
-
-	}
-
-	//Propagate blueprint events.
-	K2_OnMovementModeChanged(PreviousMovementMode, GetCharacterMovement()->MovementMode, PreviousCustomMode, GetCharacterMovement()->CustomMovementMode);
-	MovementModeChangedDelegate.Broadcast(this, PreviousMovementMode, PreviousCustomMode);
-
+	*/
+	
 
 }
 
