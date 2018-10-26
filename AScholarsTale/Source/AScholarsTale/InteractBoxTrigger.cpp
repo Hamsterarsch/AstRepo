@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "InteractBoxTrigger.h"
+#include "AScholarsTale.h"
 
 
 //Public--------------
@@ -11,8 +12,7 @@ UInteractBoxTrigger::UInteractBoxTrigger()
 	//Overlap bindings.
 	OnComponentBeginOverlap.AddDynamic(this, &UInteractBoxTrigger::OnTriggerBeginOverlap);
 	OnComponentEndOverlap.AddDynamic(this, &UInteractBoxTrigger::OnTriggerEndOverlap);
-
-
+	
 
 }
 
@@ -24,7 +24,7 @@ void UInteractBoxTrigger::OnTriggerBeginOverlap(UPrimitiveComponent *OverlappedC
 	//If overlapped was player...
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{		
-		UE_LOG(LogTemp, Warning, TEXT("UInteractBoxTrigger:: Try add"));
+		UE_LOG(AST_LogInfo, Log, TEXT("UInteractBoxTrigger:: Try add"));
 		//...add to interact delegate if bound.
 		if (m_InteractEvent.IsBound())
 		{
@@ -43,9 +43,10 @@ void UInteractBoxTrigger::OnTriggerEndOverlap(UPrimitiveComponent *OverlappedCom
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{
 		//...remove event from interact delegate.
-		UE_LOG(LogTemp, Warning, TEXT("UInteractBoxTrigger:: Try remove"));
+		UE_LOG(AST_LogInfo, Log, TEXT("UInteractBoxTrigger:: Try remove"));
 		Player->RemoveInteraction(m_InteractEvent);
 
 	}
+
 
 }
