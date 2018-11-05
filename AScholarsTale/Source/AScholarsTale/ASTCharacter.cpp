@@ -112,6 +112,7 @@ void AASTCharacter::TryEnterRopingMode()
 		{
 			MC->m_RopingAttachmentPoint = m_pTargetRope->GetActorLocation();
 			MC->SetMovementMode(EMovementMode::MOVE_Custom, (uint8)EASTMovementMode::Roping);
+			MC->Velocity.Z = 0;
 
 		}
 	
@@ -140,7 +141,7 @@ void AASTCharacter::OnRopeEntered(const ARope *pRope)
 
 void AASTCharacter::OnRopeLeft()
 {
-	m_pTargetRope = nullptr;
+	//m_pTargetRope = nullptr;
 	UE_LOG(LogTemp, Log, TEXT("RopeLeft"));
 
 }
@@ -193,7 +194,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 
 		case EASTMovementMode::Roping:
 			m_PreGlideJumpCount = JumpCurrentCount;
-			GetCharacterMovement()->Velocity = FVector::ZeroVector;
+			//GetCharacterMovement()->Velocity = FVector::ZeroVector;
 			UE_LOG(AST_Movement, Verbose, TEXT("Entering roping movement"));
 			break;
 
