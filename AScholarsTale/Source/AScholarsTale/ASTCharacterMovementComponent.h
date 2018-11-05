@@ -9,7 +9,8 @@ UENUM(BlueprintType)
 enum class EASTMovementMode : uint8
 {
 	None UMETA(DisplayName="None"),
-	Gliding UMETA(DisplayName="Gliding")
+	Gliding UMETA(DisplayName="Gliding"),
+	Roping UMETA(DisplayName="Roping")
 
 
 };
@@ -22,15 +23,9 @@ class ASCHOLARSTALE_API UASTCharacterMovementComponent : public UCharacterMoveme
 	GENERATED_BODY()
 	
 public:
-	void AddGlidingForceOffset(const FVector &ForceOffset) { m_GlidingForceOffset += ForceOffset; }
-
-
-protected:
-	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
-
 	virtual void SetMovementMode(EMovementMode NewMovementMode, uint8 NewCustomMode = 0) override;
-	//virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+	void AddGlidingForceOffset(const FVector &ForceOffset) { m_GlidingForceOffset += ForceOffset; }
 
 
 	UPROPERTY(EditAnywhere)
@@ -47,12 +42,24 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		float m_GlidingTurnSpeed{ 1.75 };
-		
-
-private:
-	int32 m_PreGlidingJumpCount;
-	FVector m_GlidingForceOffset{ EForceInit::ForceInitToZero };
-
-
 	
+	UPROPERTY(EditAnywhere)
+		float m_RopingSwingSpeed{ 200 };
+
+	FVector m_RopingAttachmentPoint;
+
+
+protected:
+	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
+		
+	//virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
+
+	void PerformGlidingMovement(float DeltaTime, int32 Iterations);
+
+	void PerformRopingMovement(float DeltaTime, int32 Iterations);
+
+		
+	FVector m_GlidingForceOffset{ EForceInit::ForceInitToZero };
+	
+
 };
