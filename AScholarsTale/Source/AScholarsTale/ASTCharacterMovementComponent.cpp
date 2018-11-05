@@ -4,7 +4,7 @@
 #include "AScholarsTale.h"
 #include "GameFramework/Character.h"
 
-
+#include "GameFramework/PhysicsVolume.h"
 //Public-------------------
 
 
@@ -113,61 +113,44 @@ void UASTCharacterMovementComponent::PerformGlidingMovement(const float DeltaTim
 
 void UASTCharacterMovementComponent::PerformRopingMovement(const float DeltaTime, int32 Iterations)
 {
-	//Velocity.X *= 0.95f;
-	//Velocity.Y *= 0.95f;
+	//const float Friction = 0.5f * GetPhysicsVolume()->FluidFriction;
+	//CalcVelocity(DeltaTime, Friction, true, GetMaxBrakingDeceleration());
 
-	auto InputVectorWS = GetLastInputVector();
+	//ApplyVelocityBraking(DeltaTime, .5, BrakingDecelerationFlying);
 
-	auto CharLocationWS = CharacterOwner->GetActorLocation();
-	auto ToSwingPointWS = m_RopingAttachmentPoint - CharLocationWS;
+	auto InputVectorWS{ GetLastInputVector() };
+	auto CharLocation{ CharacterOwner->GetActorLocation() };
+	auto ToCharacter{ CharLocation - m_RopingAttachmentPoint };
 
-	auto XYMovement = FVector{ ToSwingPointWS.X, ToSwingPointWS.Y, 0 };
-
-	auto DistToCenter = ToSwingPointWS.Size();
-	auto VelocityCorrectedMagnitude = Velocity | ToSwingPointWS;
-
-	//UE_LOG(LogTemp, Warning, TEXT("xy: %01s, v: %02s, c: %03f, %04f"), *XYMovement.ToString(), *Velocity.ToString(), DistToCenter, VelocityCorrectedMagnitude);
-	FVector GravityDir{ 0, 0, -1 };
-	auto DotOfToCenterAndGravity = (GravityDir | ToSwingPointWS.GetSafeNormal()) + 1;
-
-
-	XYMovement.Normalize();
-
-	XYMovement *= DistToCenter;// DistToCenter;
-	Velocity += XYMovement * DeltaTime;
-	//Velocity.Z += GetGravityZ() * DeltaTime * DotOfToCenterAndGravity;
-	UE_LOG(LogTemp, Warning, TEXT("%01f"), VelocityCorrectedMagnitude);
-
-	//Velocity += MovementDir * DeltaTime;
-	//Velocity.Z += GetGravityZ() * DeltaTime;
-
+	FVector ForcesToApply{ 0, 0, 0 };
 	
-	/*
-	auto GravityFactor = (ToSwingPointWS | Velocity.GetSafeNormal()) + 1;
-	FVector MovementDir{ ToSwingPointWS };
-	MovementDir.Z = 0;
-	MovementDir.Normalize();
-	//MovementDir *= 980;
-	MovementDir.Z = -1;// GetGravityZ();
-	MovementDir += InputVectorWS;// *m_RopingSwingSpeed;
+	auto CentripetalForceMagnitude{ FMath::Abs(ToCharacter | Velocity) };
+	auto ToCharacterN{ ToCharacter.GetSafeNormal() };
+	auto CentriMagnitude = (Velocity.Size() * Velocity.Size()) / ToCharacter.Size();
+	auto CentripetalForce = CentriMagnitude * -ToCharacterN;
+	
+	
+	auto CentrifugalScale = ToCharacterN | FVector{ 0, 0, GetGravityZ() };
+	auto Centrifugal = ToCharacterN * CentrifugalScale;
 
-	auto d = (FVector(0, 0, - 1) | FVector(0, 0, 1)) + 1;
-	UE_LOG(LogTemp, Warning, TEXT("%01f"), d);
-	UE_LOG(AST_Movement, VeryVerbose, TEXT("Roping:----------------------\n\t\t InputWS: %01s,\n\t\t ToSwingPointWS: %02s,\n\t\t Velocity: %03s\n\t\t GravityFac: %04f"), 
-	*InputVectorWS.ToString(), *ToSwingPointWS.ToString(), *Velocity.ToString(), GravityFactor);
-	*/
+	ForcesToApply += -Centrifugal;
+	ForcesToApply.Z += GetGravityZ();
 
-	/*
-	Velocity *= 0.125;
-	Velocity.X += m_RopingSwingSpeed * InputVectorWS.X * 980;
-	Velocity.Y += m_RopingSwingSpeed * InputVectorWS.Y * 980;
+	//ForcesToApply += CentripetalForce;
+	//ForcesToApply.Z += GetGravityZ() / 100;
 
-	//Ignores all applied forces in terms of z
-	Velocity.Z += GetGravityZ() * GravityFactor;
-	//Velocity.Z = 0;
-	Velocity = MovementDir * GravityFactor;
-	*/
 
+	ForcesToApply += InputVectorWS * m_RopingSwingSpeed;
+
+	Velocity += ForcesToApply * DeltaTime;
+	
+		
+	
+	UE_LOG(AST_Movement, VeryVerbose, TEXT(" \n\t toC: %s,\n\t Velo: %s,\n\t input: %s,\n\t mag: %f,\n\t forces: %s\n "), *ToCharacter.ToString(), *Velocity.ToString(), *InputVectorWS.ToString(), CentripetalForceMagnitude, *ForcesToApply.ToString());
+
+
+
+/////////
 	auto Adjusted = Velocity * DeltaTime;
 	FHitResult Hit{ 1.f };
 	SafeMoveUpdatedComponent(Adjusted, UpdatedComponent->GetComponentQuat(), true, Hit);

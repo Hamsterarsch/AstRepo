@@ -53,6 +53,7 @@ public:
 	
 	UPROPERTY()
 		const class ARope *m_pTargetRope;
+	
 
 protected:
 	//Empty

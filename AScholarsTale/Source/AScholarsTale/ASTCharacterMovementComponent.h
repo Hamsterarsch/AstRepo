@@ -44,9 +44,10 @@ public:
 		float m_GlidingTurnSpeed{ 1.75 };
 	
 	UPROPERTY(EditAnywhere)
-		float m_RopingSwingSpeed{ 200 };
+		float m_RopingSwingSpeed{ 100 };
 
 	FVector m_RopingAttachmentPoint;
+
 
 
 protected:
