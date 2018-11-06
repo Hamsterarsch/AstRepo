@@ -51,6 +51,10 @@ public:
 	UFUNCTION(BlueprintCallable)
 		void LeaveRopingMode();
 	
+	virtual void CheckJumpInput(float DeltaTime) override;
+
+
+
 	UPROPERTY()
 		const class ARope *m_pTargetRope;
 	

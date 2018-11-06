@@ -112,7 +112,6 @@ void AASTCharacter::TryEnterRopingMode()
 		{
 			MC->m_RopingAttachmentPoint = m_pTargetRope->GetActorLocation();
 			MC->SetMovementMode(EMovementMode::MOVE_Custom, (uint8)EASTMovementMode::Roping);
-			MC->Velocity.Z = 0;
 
 		}
 	
@@ -141,8 +140,51 @@ void AASTCharacter::OnRopeEntered(const ARope *pRope)
 
 void AASTCharacter::OnRopeLeft()
 {
+	LeaveRopingMode();
 	//m_pTargetRope = nullptr;
 	UE_LOG(LogTemp, Log, TEXT("RopeLeft"));
+
+}
+
+void AASTCharacter::CheckJumpInput(float DeltaTime)
+{
+	//Implementation from UCharacter
+
+	auto CharacterMovement = GetCharacterMovement();
+	if (CharacterMovement)
+	{
+		if (bPressedJump)
+		{
+			///////Commented block is used in UCharacter to prevent jumps while falling when having no base
+			///////but we want the same amount of jumps in air and on ground
+
+			// If this is the first jump and we're already falling,
+			// then increment the JumpCount to compensate.
+			/*
+			const bool bFirstJump = JumpCurrentCount == 0;
+			if (bFirstJump && CharacterMovement->IsFalling())
+			{
+				++JumpCurrentCount;
+			}
+			*/
+
+			const bool bDidJump = CanJump() && CharacterMovement->DoJump(bClientUpdating);
+			if (bDidJump)
+			{
+				// Transition from not (actively) jumping to jumping.
+				if (!bWasJumping)
+				{
+					++JumpCurrentCount;
+					JumpForceTimeRemaining = GetJumpMaxHoldTime();
+					OnJumped();
+				}
+			}
+
+			bWasJumping = bDidJump;
+		}
+	}
+
+
 
 }
 
@@ -160,18 +202,25 @@ void AASTCharacter::BeginPlay()
 void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
 {
 	UE_LOG(AST_Movement, Verbose, TEXT("---------OnMovementChanged_Stats------------------\n CurrentMode: %01i, LastMode: %02i, CurrentCustom: %03i, LastCustom: %04i"), 
-	GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
+		GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
 	
 	//Handling for custom movement modes
 	if ( PreviousMovementMode == MOVE_Custom )
 	{
 		auto PreviousCustomModeTyped = (EASTMovementMode)PreviousCustomMode;
-		if (PreviousCustomModeTyped == EASTMovementMode::Gliding || PreviousCustomModeTyped == EASTMovementMode::Roping)
+		if (PreviousCustomModeTyped == EASTMovementMode::Gliding)
 		{
 			JumpCurrentCount = m_PreGlideJumpCount;
 			UE_LOG(AST_Movement, Log, TEXT("Leaving custom movement, jump restore"));
 
 		}
+		else if (PreviousCustomModeTyped == EASTMovementMode::Roping)
+		{
+			UE_LOG(AST_Movement, Log, TEXT("Leaving roping movement, jump restore to max"));
+			JumpCurrentCount = 0;
+
+		}
+		UE_LOG(AST_Movement, Verbose, TEXT("Current jump count: %i"), JumpCurrentCount);
 
 	}
 
@@ -193,7 +242,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 			break;
 
 		case EASTMovementMode::Roping:
-			m_PreGlideJumpCount = JumpCurrentCount;
+			//m_PreGlideJumpCount = JumpCurrentCount;
 			//GetCharacterMovement()->Velocity = FVector::ZeroVector;
 			UE_LOG(AST_Movement, Verbose, TEXT("Entering roping movement"));
 			break;
@@ -203,6 +252,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 			break;
 
 		}
+		UE_LOG(AST_Movement, Verbose, TEXT("Saved jump count: %i"), m_PreGlideJumpCount);
 
 	}
 
@@ -230,45 +280,6 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 	K2_OnMovementModeChanged(PreviousMovementMode, GetCharacterMovement()->MovementMode, PreviousCustomMode, GetCharacterMovement()->CustomMovementMode);
 	MovementModeChangedDelegate.Broadcast(this, PreviousMovementMode, PreviousCustomMode);
 	
-	/*
-	if ( PreviousMovementMode == MOVE_Custom || GetCharacterMovement()->MovementMode == MOVE_Custom )
-	{
-		auto CurrentCustomModeTyped = (EASTMovementMode)GetCharacterMovement()->CustomMovementMode;
-		
-		if(  CurrentCustomModeTyped == EASTMovementMode::Gliding )
-		{
-			//Null velocity so it does not influence gliding computations.
-			GetCharacterMovement()->Velocity = FVector::ZeroVector;
-			
-			//Safe the remaining jumps on gliding for restore.
-			m_PreGlideJumpCount = JumpCurrentCount;
-			UE_LOG(AST_Movement, Verbose, TEXT("Entering gliding movement"));
-
-		}
-		else if ( (EASTMovementMode)PreviousCustomMode == EASTMovementMode::Gliding)
-		{
-			//Restore jump count when leaving gliding.
-			JumpCurrentCount = m_PreGlideJumpCount;
-			UE_LOG(AST_Movement, Log, TEXT("Leaving gliding movement"));
-
-		}
-		else
-		{				
-			UE_LOG(AST_Movement, Warning, TEXT("Custom movement: None"));
-
-		}
-
-	}
-	else if ( !bPressedJump || !GetCharacterMovement()->IsFalling() )
-	{
-		//Reset jump state for non custom modes.
-		ResetJumpState();
-
-		UE_LOG(AST_Movement, Verbose, TEXT("Reseting jump state: MovementMode: %01i, PreviousMovementMode: %02i"), 
-		GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode);
-
-	}
-	*/
 	
 
 }
