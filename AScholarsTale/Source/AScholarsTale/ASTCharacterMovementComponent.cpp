@@ -51,7 +51,8 @@ void UASTCharacterMovementComponent::PerformGlidingMovement(const float DeltaTim
 	auto LocalInput = CharacterOwner->GetActorTransform().Inverse().TransformVectorNoScale(GetLastInputVector());
 
 	//Determine camera rotation amount based on local input.
-	if (auto *PC = Cast<AASTPlayerController>(CharacterOwner->GetController()))
+	auto *PC = Cast<AASTPlayerController>(CharacterOwner->GetController());
+	if (PC)
 	{
 		PC->AddGlidingCameraYawInput((LocalInput.Y * m_GlidingTurnSpeed * DeltaTime) / 50);
 		PC->AddGlidingCameraPitchInput(LocalInput.X * DeltaTime);
@@ -108,6 +109,7 @@ void UASTCharacterMovementComponent::PerformGlidingMovement(const float DeltaTim
 
 			//Change to walking mode (end of gliding == earth touch)
 			SetMovementMode(MOVE_Falling);
+			PC->DisableGlidingCamera();
 
 		}
 

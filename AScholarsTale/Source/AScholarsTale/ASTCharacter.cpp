@@ -4,7 +4,13 @@
 #include "ASTPlayerController.h"
 #include "Engine/World.h"
 #include "Rope.h"
+#include "Components/SceneComponent.h"
+#include "Runtime/Engine/Classes/Camera/CameraComponent.h"
+#include "Slingable.h"
+#include "TeleballBase.h"
 #include "Components/InputComponent.h"
+
+#include "Components/CapsuleComponent.h"
 
 
 //Public---------------------------
@@ -13,6 +19,13 @@ AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
 	m_MaxJumpCount{ 2 }
 {
 	PrimaryActorTick.bCanEverTick = true;
+	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+	m_pCamera->SetupAttachment(GetRootComponent());
+	m_pCamera->SetRelativeLocation({ 0,0,50 });
+
+	m_pGrabbedRoot = CreateDefaultSubobject<USceneComponent>(TEXT("GrabbableRoot"));
+	m_pGrabbedRoot->SetupAttachment(m_pCamera);
+	m_pGrabbedRoot->SetRelativeLocation({ 25,0,0 });
 
 
 }
@@ -66,6 +79,10 @@ void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	//Rope
 	PlayerInputComponent->BindAction(TEXT("RopeGrab"), IE_Pressed, this, &AASTCharacter::TryEnterRopingMode); 
 	PlayerInputComponent->BindAction(TEXT("RopeGrab"), IE_Released, this, &AASTCharacter::LeaveRopingMode);
+
+	//Teleball
+	PlayerInputComponent->BindAction(TEXT("Teleball"), IE_Pressed, this, &AASTCharacter::SpawnTeleball);
+	PlayerInputComponent->BindAction(TEXT("Teleball"), IE_Released, this, &AASTCharacter::TryLaunchCurrentSlingable);
 
 }
 
@@ -384,6 +401,7 @@ void AASTCharacter::Jump()
 	*/
 	Super::Jump();
 
+
 }
 
 void AASTCharacter::StopJumping()
@@ -402,6 +420,85 @@ void AASTCharacter::PerformInteract()
 	if (InputEnabled())
 	{
 		m_InteractDelegate.Broadcast();
+
+	}
+
+
+}
+
+void AASTCharacter::SpawnTeleball()
+{
+	if (m_pLastGrabbed->IsA<ATeleballBase>())
+	{
+		m_pLastGrabbed->Destroy();
+
+
+	}
+
+	if (!m_pCurrentlyGrabbed)
+	{
+		UClass *pClass = nullptr;
+		if ((pClass = m_pTeleballAsset.Get()) == nullptr)
+		{	
+			pClass = m_pTeleballAsset.LoadSynchronous();//.ToSoftObjectPath().TryLoad();
+			
+			/*
+			if (auto *pBlueprint = Cast<UBlueprint>(pClass))
+			{
+				pClass = pBlueprint->GeneratedClass;
+				pClass->Generated
+			}
+			else
+			{
+				pClass = pClass->StaticClass();
+
+			}
+			*/
+
+			//pClass = m_pTeleballAsset.LoadSynchronous();
+			
+		}
+		UE_LOG(LogTemp, Warning, TEXT(": %s"), *pClass->GetName());
+
+		if (pClass)
+		{			
+			auto Transform = m_pGrabbedRoot->GetComponentTransform();
+			m_pCurrentlyGrabbed = GetWorld()->SpawnActor(pClass, &Transform);
+			m_pCurrentlyGrabbed->AttachToComponent(m_pGrabbedRoot, FAttachmentTransformRules::KeepWorldTransform);
+			
+		}
+	
+	}
+	
+
+
+
+}
+
+void AASTCharacter::TryLaunchCurrentSlingable()
+{
+	if (auto *pSlingable = Cast<ISlingable>(m_pCurrentlyGrabbed))
+	{		
+		m_pCurrentlyGrabbed->DetachAllSceneComponents(m_pGrabbedRoot, FDetachmentTransformRules::KeepWorldTransform);
+		pSlingable->Launch(m_pCamera->GetForwardVector() * m_SlingForce);
+		
+		m_pLastGrabbed = m_pCurrentlyGrabbed;
+		m_pCurrentlyGrabbed = nullptr;
+
+	}
+
+
+}
+
+void AASTCharacter::TryTeleportToTeleball()
+{
+	if (auto *pTargetTeleball = Cast<ATeleballBase>(m_pLastGrabbed))
+	{
+		auto TeleballPos = pTargetTeleball->GetActorLocation();
+
+
+		//GetWorld()->ComponentOverlapMultiByChannel
+		
 
 	}
 

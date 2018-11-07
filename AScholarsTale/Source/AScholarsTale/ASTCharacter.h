@@ -79,6 +79,10 @@ protected:
 	//@param PreviousCustomMode: The custom movement sub-mode prior to the change.
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+
+	UPROPERTY(EditAnywhere)
+		class UCameraComponent *m_pCamera;
+
 	
 private:
 	//Adds an input value to the movement component.
@@ -114,6 +118,12 @@ private:
 	//Broadcasts the interact delegate. Used for input binding.
 	void PerformInteract();
 
+	void SpawnTeleball();
+
+	void TryLaunchCurrentSlingable();
+
+	void TryTeleportToTeleball();
+
 	//The delegate to that interaction functions should be bound to.
 	FInteractSignature m_InteractDelegate;
 
@@ -130,5 +140,19 @@ private:
 	UPROPERTY()
 		unsigned int m_MaxJumpCount;
 
+	UPROPERTY()		
+		class AActor *m_pCurrentlyGrabbed;
+
+	UPROPERTY(EditDefaultsOnly)//, Meta = (AllowAbstract=false, AllowedClasses="TeleballBase", ExactClass=false))
+		TSoftClassPtr<class ATeleballBase> m_pTeleballAsset;
+
+	UPROPERTY()
+		class USceneComponent *m_pGrabbedRoot;
+
+	UPROPERTY()
+		AActor *m_pLastGrabbed;
+
+	UPROPERTY(EditDefaultsOnly)
+		float m_SlingForce{ 1000 };
 
 };
