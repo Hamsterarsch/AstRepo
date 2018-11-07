@@ -9,9 +9,9 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractSignature);
 DECLARE_DYNAMIC_DELEGATE(FInteractCallbackSignature);
 
+UCLASS(Blueprintable, Abstract, CustomConstructor)
 //Class representing a player character for AST
 //Input bindings executed via PlayerInputComponent
-UCLASS(Blueprintable, Abstract)
 class ASCHOLARSTALE_API AASTCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -26,7 +26,7 @@ public:
 	//Setup of input bindings for player
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	//Empty
+	//unused feature code, todo: remove or not
 	virtual void Tick(float DeltaTime) override;
 
 	//Adds an event to the delegate called on interaction.
@@ -40,22 +40,31 @@ public:
 		void RemoveInteraction(const FInteractCallbackSignature &Event);
 
 	UFUNCTION(BlueprintCallable)
+		//Called when the range of a rope is entered.
+		//@param pRope: pointer to the rope entered.
 		void OnRopeEntered(const class ARope *pRope);
 
 	UFUNCTION(BlueprintCallable)
+		//Called when the range of a rope is left.
 		void OnRopeLeft();
 
 	UFUNCTION(BlueprintCallable)
+		//Performs transition to roping movement if possible
+		//eg. all data is valid.
 		void TryEnterRopingMode();
 
 	UFUNCTION(BlueprintCallable)
+		//Transitions to falling movement mode
+		//if currently using roping movement.
 		void LeaveRopingMode();
 	
+	//override to remove jump decrement on falling movement.
+	//@param DeltaTime: last frame time.
 	virtual void CheckJumpInput(float DeltaTime) override;
 
-
-
+	
 	UPROPERTY()
+		//The rope that is currently in proximity.
 		const class ARope *m_pTargetRope;
 	
 
@@ -63,10 +72,14 @@ protected:
 	//Empty
 	virtual void BeginPlay() override;
 
+	//Called when the movement mode changes.
+	//Overridden to prevent movement state resets when leaving certain custom modes.
+	//(This has to be in this class because its base resets the jump state.)
+	//@param PreviousMovementMode: The movement mode before the change.
+	//@param PreviousCustomMode: The custom movement sub-mode prior to the change.
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
-
-
+	
 private:
 	//Adds an input value to the movement component.
 	//@param AxisValue: The magnitude of the movement. 
@@ -86,16 +99,16 @@ private:
 	//@param AxisValue: The magnitude of the movement.
 	void AddControlRotationYaw(float AxisValue);
 
+	//Enables the gliding camera and transitions to gliding movement.
 	void StartGliding();
 
+	//Disables the gliding camera and transitions to falling state if the current movement is gliding.
 	void StopGliding();
-
-
-
-	//todo
+	   
+	//Contains old jump implementation, todo: clean
 	void Jump();
 
-	//todo
+	//Stops jumping, todo: maybe just use the base's function.
 	void StopJumping();
 	
 	//Broadcasts the interact delegate. Used for input binding.
@@ -110,11 +123,11 @@ private:
 	//todo
 	unsigned int m_CurrentJumpCount;
 
+	//The number of jumps already executed on entering gliding movement.
 	uint32 m_PreGlideJumpCount;
 			
-
 	//todo
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY()
 		unsigned int m_MaxJumpCount;
 
 

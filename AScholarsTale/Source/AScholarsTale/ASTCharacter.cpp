@@ -141,7 +141,7 @@ void AASTCharacter::OnRopeEntered(const ARope *pRope)
 void AASTCharacter::OnRopeLeft()
 {
 	LeaveRopingMode();
-	//m_pTargetRope = nullptr;
+	m_pTargetRope = nullptr;
 	UE_LOG(LogTemp, Log, TEXT("RopeLeft"));
 
 }
@@ -341,6 +341,7 @@ void AASTCharacter::StartGliding()
 
 	}
 
+
 }
 
 void AASTCharacter::StopGliding()
@@ -348,11 +349,19 @@ void AASTCharacter::StopGliding()
 	if (auto *PC = Cast<AASTPlayerController>(Controller))
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Unclick"));
+		if 
+		(
+			GetCharacterMovement()->MovementMode == MOVE_Custom 
+			&& (EASTMovementMode)GetCharacterMovement()->CustomMovementMode == EASTMovementMode::Gliding
+		)
+		{
+			GetCharacterMovement()->SetMovementMode(MOVE_Falling);
+			PC->DisableGlidingCamera();
 		
-		GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-		PC->DisableGlidingCamera();
+		}
 
 	}
+
 
 }
 

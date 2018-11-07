@@ -37,24 +37,24 @@ public:
 	void AddGlidingForceOffset(const FVector &ForceOffset) { m_GlidingForceOffset += ForceOffset; }
 
 
-	UPROPERTY(EditAnywhere, DisplayName="Gliding Lift Amount", Meta = (Category="AST Character Movement: Gliding"))
+	UPROPERTY(EditDefaultsOnly, DisplayName="Gliding Lift Amount", Meta = (Category="AST Character Movement: Gliding"))
 		//The amount of lift to apply during gliding in percent relative to the force of gravity.
 		float m_GlidingLiftAmount{ 0.9 };
 
-	UPROPERTY(EditAnywhere, DisplayName = "Gliding Forward Drift", Meta = (Category = "AST Character Movement: Gliding"))
-		//The unitless amount of force to apply towards the camera direction.
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Gliding Forward Drift", Meta = (Category = "AST Character Movement: Gliding"))
+		//The amount of force to apply towards the camera directionin unreal units per second.
 		float m_GlidingForwardDrift{ 700 };
 
-	UPROPERTY(EditAnywhere, DisplayName = "Gliding Lean Speed", Meta = (Category = "AST Character Movement: Gliding"))
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Gliding Lean Speed", Meta = (Category = "AST Character Movement: Gliding"))
 		//The unitless amount of velocity to apply during leaning forwards or backwards (symmetrically).
 		float m_GlidingLeanSpeed{ 400 };
 
-	UPROPERTY(EditAnywhere, DisplayName = "Gliding Turn Speed", Meta = (Category = "AST Character Movement: Gliding"))
-		//The unitless amount of rotation to apply when steering left or right.
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Gliding Turn Speed", Meta = (Category = "AST Character Movement: Gliding"))
+		//The amount of rotation to apply when steering left or right in unreal units per second.
 		float m_GlidingTurnSpeed{ 200 };
 	
-	UPROPERTY(EditAnywhere, DisplayName = "Roping Swing Force", Meta = (Category = "AST Character Movement: Roping"))
-		//The the force to apply towards the input direction during roping.
+	UPROPERTY(EditDefaultsOnly, DisplayName = "Roping Swing Force", Meta = (Category = "AST Character Movement: Roping"))
+		//The the force to apply towards the input direction during roping in unreal units per second.
 		float m_RopingSwingForce{ 200 };
 
 	//The world space position of the point we want to swing around during roping movement.
