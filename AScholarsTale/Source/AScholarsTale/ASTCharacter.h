@@ -83,6 +83,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 		class UCameraComponent *m_pCamera;
 
+	UPROPERTY(EditDefaultsOnly)
+		TSoftClassPtr<class UUserWidget> m_pInteractWidgetAsset;
+
 	
 private:
 	//Adds an input value to the movement component.
@@ -146,11 +149,19 @@ private:
 	UPROPERTY(EditDefaultsOnly)//, Meta = (AllowAbstract=false, AllowedClasses="TeleballBase", ExactClass=false))
 		TSoftClassPtr<class ATeleballBase> m_pTeleballAsset;
 
+	//UPROPERTY(EditDefaultsOnly)
+		//TSoftClassPtr<class UUserWidget> m_pInteractWidgetAsset;
+		
+		//TSoftObjectPtr<UUserWidget> m_Test;
+
 	UPROPERTY()
 		class USceneComponent *m_pGrabbedRoot;
 
 	UPROPERTY()
 		AActor *m_pLastGrabbed;
+
+	UPROPERTY()
+		class UUserWidget *m_pInteractWidget;
 
 	UPROPERTY(EditDefaultsOnly)
 		float m_SlingForce{ 1000 };

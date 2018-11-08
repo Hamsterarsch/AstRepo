@@ -16,6 +16,47 @@ UInteractBoxTrigger::UInteractBoxTrigger()
 
 }
 
+void UInteractBoxTrigger::BroadcastInteractEvent()
+{
+	if (m_InteractEvent.IsBound())
+	{
+		m_InteractEvent.Broadcast();
+
+	}
+	else
+	{
+		UE_LOG(AST_Interact, Warning, TEXT("Interact box %s attached to %s has no interact event on broadcast."), *GetName(), *GetAttachParent()->GetName());
+
+	}
+
+
+}
+
+//Protected------------
+
+void UInteractBoxTrigger::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (m_InteractEvent.IsBound())
+	{
+		m_InteractDelegateWrapped.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(UInteractBoxTrigger, BroadcastInteractEvent));
+
+		if (!m_InteractDelegateWrapped.IsBound())
+		{
+			UE_LOG(AST_Interact, Error, TEXT("UInteractBoxTrigger:: Could not bind interact event to broadcast function."));
+
+		}
+	
+	}
+	else
+	{
+		UE_LOG(AST_Interact, Warning, TEXT("Interact box %s attached to %s has no interact event on construction."), *GetName(), *GetAttachmentRoot()->GetName());
+
+	}
+
+	
+}
 
 //Private--------------
 
@@ -24,12 +65,12 @@ void UInteractBoxTrigger::OnTriggerBeginOverlap(UPrimitiveComponent *OverlappedC
 	//If overlapped was player...
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{		
-		UE_LOG(AST_LogInfo, Log, TEXT("UInteractBoxTrigger:: Try add"));
 		//...add to interact delegate if bound.
-		if (m_InteractEvent.IsBound())
+		if (m_InteractDelegateWrapped.IsBound())
 		{
-			Player->AddInteraction(m_InteractEvent);
-		
+			UE_LOG(AST_Interact, Log, TEXT("UInteractBoxTrigger:: Try add bound delegate wrapper."));
+			Player->AddInteraction(m_InteractDelegateWrapped);
+					
 		}
 		
 	}
@@ -43,8 +84,8 @@ void UInteractBoxTrigger::OnTriggerEndOverlap(UPrimitiveComponent *OverlappedCom
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{
 		//...remove event from interact delegate.
-		UE_LOG(AST_LogInfo, Log, TEXT("UInteractBoxTrigger:: Try remove"));
-		Player->RemoveInteraction(m_InteractEvent);
+		UE_LOG(AST_LogInfo, Log, TEXT("UInteractBoxTrigger:: Try remove bound delegate wrapper."));
+		Player->RemoveInteraction(m_InteractDelegateWrapped);
 
 	}
 

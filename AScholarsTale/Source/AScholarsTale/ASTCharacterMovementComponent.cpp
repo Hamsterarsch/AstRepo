@@ -62,9 +62,9 @@ void UASTCharacterMovementComponent::PerformGlidingMovement(const float DeltaTim
 	//Gliding velocity computation.	
 	auto ForwardSpeed = m_GlidingForwardDrift + m_GlidingLeanSpeed * LocalInput.X;
 	Velocity = CharacterOwner->GetActorForwardVector() * ForwardSpeed + m_GlidingForceOffset;
-	Velocity.Z = GetGravityZ() + -GetGravityZ() * m_GlidingLiftAmount;
+	Velocity.Z = GetGravityZ() + -GetGravityZ() * m_GlidingLiftAmount + m_GlidingForceOffset.Z;
 
-	UE_LOG(AST_Movement, Verbose, TEXT("Gliding pending forces: %s"), *PendingForceToApply.ToString());
+	UE_LOG(AST_Movement, Verbose, TEXT(" \n\tGliding force offset: %s,\n\tVelocity: %s"), *m_GlidingForceOffset.ToString(), *Velocity.ToString());
 
 	//State updates
 	++Iterations;

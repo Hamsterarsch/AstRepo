@@ -9,6 +9,7 @@
 #include "Slingable.h"
 #include "TeleballBase.h"
 #include "Components/InputComponent.h"
+#include "UserWidget.h"
 
 #include "Components/CapsuleComponent.h"
 
@@ -26,8 +27,8 @@ AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
 	m_pGrabbedRoot = CreateDefaultSubobject<USceneComponent>(TEXT("GrabbableRoot"));
 	m_pGrabbedRoot->SetupAttachment(m_pCamera);
 	m_pGrabbedRoot->SetRelativeLocation({ 25,0,0 });
-
-
+		
+	
 }
 
 void AASTCharacter::PostInitializeComponents()
@@ -36,6 +37,20 @@ void AASTCharacter::PostInitializeComponents()
 
 	m_CurrentJumpCount = m_MaxJumpCount;
 
+	UClass *pWidgetObject = nullptr;
+	if ((pWidgetObject = m_pInteractWidgetAsset.Get()) == nullptr)
+	{
+		pWidgetObject = m_pInteractWidgetAsset.LoadSynchronous();
+
+	}
+
+	if (pWidgetObject)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *pWidgetObject->GetName());
+		m_pInteractWidget = CreateWidget(GetWorld(), pWidgetObject);
+
+
+	}
 
 }
 
@@ -83,14 +98,19 @@ void AASTCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	//Teleball
 	PlayerInputComponent->BindAction(TEXT("Teleball"), IE_Pressed, this, &AASTCharacter::SpawnTeleball);
 	PlayerInputComponent->BindAction(TEXT("Teleball"), IE_Released, this, &AASTCharacter::TryLaunchCurrentSlingable);
+	PlayerInputComponent->BindAction(TEXT("TeleballPort"), IE_Pressed, this, &AASTCharacter::TryTeleportToTeleball);
 
 }
 
 void AASTCharacter::AddInteraction(const FInteractCallbackSignature &Event)
 {
 	m_InteractDelegate.Add(Event);
-	++m_InteractionCount;
 
+	if (++m_InteractionCount == 1)
+	{
+		m_pInteractWidget->AddToViewport();
+
+	}
 	//Todo: show interact interface here if interact count was previously 0
 
 
@@ -107,8 +127,12 @@ void AASTCharacter::RemoveInteraction(const FInteractCallbackSignature &Event)
 		}
 
 		m_InteractDelegate.Remove(Event);
-		--m_InteractionCount;
 
+		if (--m_InteractionCount == 0)
+		{
+			m_pInteractWidget->RemoveFromViewport();
+
+		}
 		//Todo: hide interact widget on 0 interactions
 
 	}
@@ -428,11 +452,14 @@ void AASTCharacter::PerformInteract()
 
 void AASTCharacter::SpawnTeleball()
 {
-	if (m_pLastGrabbed->IsA<ATeleballBase>())
+	if (m_pLastGrabbed)
 	{
-		m_pLastGrabbed->Destroy();
-
-
+		if (auto *pOldTeleball = Cast<ATeleballBase>(m_pLastGrabbed))
+		{
+			pOldTeleball->OnTeleballRecast();
+		
+		}
+		
 	}
 
 	if (!m_pCurrentlyGrabbed)
@@ -458,7 +485,7 @@ void AASTCharacter::SpawnTeleball()
 			//pClass = m_pTeleballAsset.LoadSynchronous();
 			
 		}
-		UE_LOG(LogTemp, Warning, TEXT(": %s"), *pClass->GetName());
+		UE_LOG(AST_Teleport, Log, TEXT("Teleball class = %s"), *pClass->GetName());
 
 		if (pClass)
 		{			
@@ -467,12 +494,15 @@ void AASTCharacter::SpawnTeleball()
 			m_pCurrentlyGrabbed->AttachToComponent(m_pGrabbedRoot, FAttachmentTransformRules::KeepWorldTransform);
 			
 		}
+		else
+		{
+			UE_LOG(AST_Teleport, Error, TEXT("ASTCharacter::Could not load teleball class."));
+
+		}
 	
 	}
 	
-
-
-
+	   
 }
 
 void AASTCharacter::TryLaunchCurrentSlingable()
@@ -494,11 +524,8 @@ void AASTCharacter::TryTeleportToTeleball()
 {
 	if (auto *pTargetTeleball = Cast<ATeleballBase>(m_pLastGrabbed))
 	{
-		auto TeleballPos = pTargetTeleball->GetActorLocation();
-
-
-		//GetWorld()->ComponentOverlapMultiByChannel
-		
+		TeleportTo(pTargetTeleball->GetActorLocation(), GetActorRotation());
+		pTargetTeleball->OnTeleportTo();
 
 	}
 
