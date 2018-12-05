@@ -80,7 +80,7 @@ protected:
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UCameraComponent *m_pCamera;
 
 	UPROPERTY(EditDefaultsOnly)
