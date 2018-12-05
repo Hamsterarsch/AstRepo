@@ -17,7 +17,8 @@
 //Public---------------------------
 AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
 	Super(Initializer.SetDefaultSubobjectClass<UASTCharacterMovementComponent>(Super::CharacterMovementComponentName)),
-	m_MaxJumpCount{ 2 }
+	m_MaxJumpCount{ 2 },
+	m_WalkingDistSinceFootstep{ 0 }
 {
 	PrimaryActorTick.bCanEverTick = true;
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -52,6 +53,9 @@ void AASTCharacter::PostInitializeComponents()
 
 	}
 
+	m_WalkingLastFramePos = GetActorLocation();
+
+
 }
 
 void AASTCharacter::Tick(float DeltaTime)
@@ -65,6 +69,8 @@ void AASTCharacter::Tick(float DeltaTime)
 
 	}
 
+	//(this is used)
+	ProcessFootsteps();
 	
 }
 
@@ -296,6 +302,12 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 		UE_LOG(AST_Movement, Verbose, TEXT("Saved jump count: %i"), m_PreGlideJumpCount);
 
 	}
+	else if (GetCharacterMovement()->MovementMode == MOVE_Walking)
+	{
+		ReceiveOnLanded();
+
+	}
+
 
 	if (GetCharacterMovement()->MovementMode != MOVE_Custom && PreviousMovementMode != MOVE_Custom)
 	{
@@ -529,5 +541,35 @@ void AASTCharacter::TryTeleportToTeleball()
 
 	}
 
+
+}
+
+void AASTCharacter::ProcessFootsteps()
+{
+	if( auto *pCharMovement = Cast<UCharacterMovementComponent>(GetMovementComponent()) )
+	{
+		if ( pCharMovement->MovementMode == MOVE_Walking )
+		{			
+			m_WalkingDistSinceFootstep += (m_WalkingLastFramePos - GetActorLocation()).Size();
+			m_WalkingLastFramePos = GetActorLocation();
+
+			if (m_WalkingDistSinceFootstep >= m_WalkingStepSize)
+			{
+				m_WalkingDistSinceFootstep = 0;
+				OnFootstep();
+
+			}
+
+		}
+
+	}
+
+
+}
+
+void AASTCharacter::ReceiveOnLanded()
+{
+	m_WalkingLastFramePos = GetActorLocation();
+	OnCharLanded();
 
 }
