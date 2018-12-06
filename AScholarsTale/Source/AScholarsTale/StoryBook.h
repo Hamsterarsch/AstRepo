@@ -53,7 +53,9 @@ protected:
 		bool m_bIsOpen;
 
 	bool m_bIsOverlapping;
-	FInteractCallbackSignature m_InteractDelegate;
+
+	UPROPERTY(BlueprintReadWrite)
+		FInteractCallbackSignature m_InteractDelegate;
 
 
 };
