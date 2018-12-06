@@ -1,7 +1,7 @@
 #include "Airstream.h"
 #include "ASTCharacter.h"
 #include "Components/ShapeComponent.h"
-
+#include "Components/BillboardComponent.h"
 
 
 //Public--------------
@@ -13,14 +13,21 @@ AAirstream::AAirstream()
 
 	SetActorHiddenInGame(false);
 
-	GetCollisionComponent()->bHiddenInGame = true;
 	GetCollisionComponent()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
-	
+
 	GetCollisionComponent()->OnComponentBeginOverlap.AddDynamic(this, &AAirstream::OnAirstreamBeginOverlap);
 	GetCollisionComponent()->OnComponentEndOverlap.AddDynamic(this, &AAirstream::OnAirstreamEndOverlap);
 	
 
 }
+
+void AAirstream::BeginPlay()
+{
+	Super::BeginPlay();
+	GetSpriteComponent()->SetHiddenInGame(true, true);
+
+}
+
 
 //Protected--------------------
 

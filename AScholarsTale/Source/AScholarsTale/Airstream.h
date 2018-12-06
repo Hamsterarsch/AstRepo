@@ -12,6 +12,7 @@ class ASCHOLARSTALE_API AAirstream : public ATriggerCapsule
 	
 public:
 	AAirstream();
+	virtual void BeginPlay() override;	
 
 protected:
 	UFUNCTION()
