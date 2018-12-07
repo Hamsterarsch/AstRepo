@@ -21,5 +21,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ObjectLibrary")
 		static TArray<UObject *> LoadObjectLibrary(const FString &Path);
 	
-	
+	UFUNCTION(BlueprintCallable)
+		static void PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UWorld *pWorld);
+
+	UFUNCTION(BlueprintCallable)
+		static void CommitMapChange(UWorld *pWorld);
+
 };
