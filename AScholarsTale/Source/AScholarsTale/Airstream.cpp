@@ -24,7 +24,10 @@ AAirstream::AAirstream()
 void AAirstream::BeginPlay()
 {
 	Super::BeginPlay();
+
+#if WITH_EDITOR
 	GetSpriteComponent()->SetHiddenInGame(true, true);
+#endif
 
 }
 
