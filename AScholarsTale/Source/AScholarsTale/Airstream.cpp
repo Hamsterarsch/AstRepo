@@ -1,6 +1,7 @@
 #include "Airstream.h"
 #include "ASTCharacter.h"
-
+#include "Components/ShapeComponent.h"
+#include "Components/BillboardComponent.h"
 
 
 //Public--------------
@@ -10,22 +11,38 @@ AAirstream::AAirstream()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.TickInterval = .125f;
 
-	OnActorBeginOverlap.AddDynamic(this, &AAirstream::OnAirstreamBeginOverlap);
-	OnActorEndOverlap.AddDynamic(this, &AAirstream::OnAirstreamEndOverlap);
+	SetActorHiddenInGame(false);
+
+	GetCollisionComponent()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
+
+	GetCollisionComponent()->OnComponentBeginOverlap.AddDynamic(this, &AAirstream::OnAirstreamBeginOverlap);
+	GetCollisionComponent()->OnComponentEndOverlap.AddDynamic(this, &AAirstream::OnAirstreamEndOverlap);
 	
 
 }
 
+void AAirstream::BeginPlay()
+{
+	Super::BeginPlay();
+
+#if WITH_EDITOR
+	GetSpriteComponent()->SetHiddenInGame(true, true);
+#endif
+
+}
+
+
 //Protected--------------------
 
-void AAirstream::OnAirstreamBeginOverlap(AActor *OverlappedActor, AActor *OtherActor)
+void AAirstream::OnAirstreamBeginOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {	
+	UE_LOG(LogTemp, Log, TEXT("Begin"));
 	if (auto *Player = Cast<AASTCharacter>(OtherActor))
 	{
 		m_pMovementComp = Cast< std::remove_pointer_t<decltype(m_pMovementComp)> >(Player->GetMovementComponent());
 		if (m_pMovementComp)
 		{
-			UE_LOG(LogTemp, Log, TEXT("Begin"));
+			UE_LOG(LogTemp, Log, TEXT("Exec force add"));
 			m_bIsOverlapping = true;
 			m_pMovementComp->AddGlidingForceOffset({ 0, 0, m_Drift });
 		}
@@ -35,14 +52,15 @@ void AAirstream::OnAirstreamBeginOverlap(AActor *OverlappedActor, AActor *OtherA
 
 }
 
-void AAirstream::OnAirstreamEndOverlap(AActor *OverlappedActor, AActor *OtherActor)
+void AAirstream::OnAirstreamEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
 {
+	UE_LOG(LogTemp, Log, TEXT("End"));
 	if ( OtherActor->IsA< AASTCharacter >() )
 	{
 		m_bIsOverlapping = false;
 		if (m_pMovementComp)
 		{
-			UE_LOG(LogTemp, Log, TEXT("End"));
+			UE_LOG(LogTemp, Log, TEXT("Exec Force remove"));
 			m_pMovementComp->AddGlidingForceOffset({ 0,0, -m_Drift });
 
 		}

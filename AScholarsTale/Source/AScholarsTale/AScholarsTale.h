@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
 #include "CoreMinimal.h"
+#include "SoftObjectPtr.h"
 
 //Containslogs for errors resulting from client 'misuse'.
 DECLARE_LOG_CATEGORY_EXTERN(AST_LogLogicError, All, All);
@@ -16,4 +16,35 @@ DECLARE_LOG_CATEGORY_EXTERN(AST_Movement, Log, All);
 DECLARE_LOG_CATEGORY_EXTERN(AST_Teleport, Log, All);
 
 DECLARE_LOG_CATEGORY_EXTERN(AST_Interact, Log, All);
+
+
+template<class T>
+UClass *LoadClassPtr(const TSoftClassPtr<T> &Ptr)
+{	
+	UClass *pClass{ nullptr };
+	if ((pClass = Ptr.Get()) == nullptr)
+	{
+		pClass = Ptr.LoadSynchronous();
+
+
+	}
+	return pClass;
+
+
+}
+
+template<class T>
+UObject *LoadObjectPtr(const TSoftObjectPtr<T> &Ptr)
+{
+	UObject *pObject{ nullptr };
+	if ((pObject = Ptr.Get()) == nullptr)
+	{
+		pObject = Ptr.LoadSynchronous();
+
+
+	}
+	return pObject;
+
+
+}
 

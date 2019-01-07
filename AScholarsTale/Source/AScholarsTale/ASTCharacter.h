@@ -79,12 +79,24 @@ protected:
 	//@param PreviousCustomMode: The custom movement sub-mode prior to the change.
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
 
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnCharLanded();
 
-	UPROPERTY(EditAnywhere)
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnFootstep();
+
+
+	UPROPERTY(EditDefaultsOnly)
+		float m_WalkingStepSize;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		class UCameraComponent *m_pCamera;
 
 	UPROPERTY(EditDefaultsOnly)
 		TSoftClassPtr<class UUserWidget> m_pInteractWidgetAsset;
+
+	UPROPERTY(EditDefaultsOnly)
+		float m_SlingForce{ 1000 };
 
 	
 private:
@@ -127,6 +139,10 @@ private:
 
 	void TryTeleportToTeleball();
 
+	void ProcessFootsteps();
+
+	void ReceiveOnLanded();
+
 	//The delegate to that interaction functions should be bound to.
 	FInteractSignature m_InteractDelegate;
 
@@ -162,8 +178,8 @@ private:
 
 	UPROPERTY()
 		class UUserWidget *m_pInteractWidget;
-
-	UPROPERTY(EditDefaultsOnly)
-		float m_SlingForce{ 1000 };
+	
+	float m_WalkingDistSinceFootstep;
+	FVector m_WalkingLastFramePos;
 
 };

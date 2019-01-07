@@ -12,13 +12,14 @@ class ASCHOLARSTALE_API AAirstream : public ATriggerCapsule
 	
 public:
 	AAirstream();
+	virtual void BeginPlay() override;	
 
 protected:
 	UFUNCTION()
-		void OnAirstreamBeginOverlap(AActor *OverlappedActor, AActor *OtherActor);
+		void OnAirstreamBeginOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 
 	UFUNCTION()
-		void OnAirstreamEndOverlap(AActor *OverlappedActor, AActor *OtherActor);
+		void OnAirstreamEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex);
 
 	virtual void Tick(float DeltaTime) override;
 
