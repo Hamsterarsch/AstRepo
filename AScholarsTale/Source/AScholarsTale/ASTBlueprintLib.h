@@ -22,9 +22,12 @@ public:
 		static TArray<UObject *> LoadObjectLibrary(const FString &Path);
 	
 	UFUNCTION(BlueprintCallable)
-		static void PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UWorld *pWorld);
+		static void PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UObject *pContext);
 
 	UFUNCTION(BlueprintCallable)
-		static void CommitMapChange(UWorld *pWorld);
+		static void CommitMapChange(UObject *pContext);
+
+	UFUNCTION(BlueprintCallable)
+		static bool IsMapChangeReady(UObject *pContext);
 
 };
