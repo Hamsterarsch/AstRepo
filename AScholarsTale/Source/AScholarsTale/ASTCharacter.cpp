@@ -18,7 +18,9 @@
 AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
 	Super(Initializer.SetDefaultSubobjectClass<UASTCharacterMovementComponent>(Super::CharacterMovementComponentName)),
 	m_MaxJumpCount{ 2 },
-	m_WalkingDistSinceFootstep{ 0 }
+	m_WalkingDistSinceFootstep{ 0 },
+	m_bIsGlidingEnabled{ false },
+	m_bIsJumpingEnabled{ false }
 {
 	PrimaryActorTick.bCanEverTick = true;
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -386,7 +388,8 @@ void AASTCharacter::AddControlRotationYaw(float AxisValue)
 
 void AASTCharacter::StartGliding()
 {
-	if (auto *PC = Cast<AASTPlayerController>(Controller))
+	auto *PC = Cast<AASTPlayerController>(Controller);
+	if (PC && m_bIsGlidingEnabled)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("Click"));
 		PC->EnableGlidingCamera();
@@ -435,7 +438,11 @@ void AASTCharacter::Jump()
 
 	}
 	*/
-	Super::Jump();
+	if (m_bIsJumpingEnabled)
+	{
+		Super::Jump();
+
+	}
 
 
 }

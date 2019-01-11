@@ -6,7 +6,11 @@
 #include "Components/SphereComponent.h"
 #include "Components/InputComponent.h"
 
-AStoryBook::AStoryBook()
+
+//Public-------------------------
+
+AStoryBook::AStoryBook() :
+	m_PageForwardFlipCountCurrent{ 0 }
 { 
 	PrimaryActorTick.bCanEverTick = true;
 	m_pSkelMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Book"));
@@ -22,29 +26,78 @@ AStoryBook::AStoryBook()
 	m_pTrigger->OnComponentBeginOverlap.AddDynamic(this, &AStoryBook::OnTriggerBeginOverlap);
 	m_pTrigger->OnComponentEndOverlap.AddDynamic(this, &AStoryBook::OnTriggerEndOverlap);
 
-	m_InteractDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(AStoryBook, OnPageSelect));
+	m_InteractDelegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(AStoryBook, ReceiveOnPageSelect));
+
 
 }
 
-void AStoryBook::StartOpenBook()
+void AStoryBook::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	auto *PC{ GetWorld()->GetFirstPlayerController() };
+	EnableInput(PC);
+	
+	if (InputComponent)
+	{
+		InputComponent->BindAction(TEXT("PreviousPage"), EInputEvent::IE_Pressed, this, &AStoryBook::FlipPageBack);
+		InputComponent->BindAction(TEXT("NextPage"), EInputEvent::IE_Pressed, this, &AStoryBook::FlipPageForward);
+
+	}
+
+
+}
+
+
+//Protected---------------------
+
+void AStoryBook::ReceiveOnOpenBook()
 {
 	m_bIsOpen = true;
-
+	OnOpenBook();
+	
 
 }
 
-void AStoryBook::StartCloseBook()
+void AStoryBook::ReceiveOnCloseBook()
 {
 	m_bIsOpen = false;
+	OnCloseBook();
 
 
 }
 
-void AStoryBook::OnPageSelect()
+void AStoryBook::FlipPageForward()
 {
-	UE_LOG(LogTemp, Log, TEXT("OnPage"));
+	if (m_PageForwardFlipCountCurrent < m_PageForwardFlipCountMax)
+	{
+		++m_PageForwardFlipCountCurrent;
+
+	}
+
+	//material changes
+}
+
+void AStoryBook::FlipPageBack()
+{
+	if (m_PageForwardFlipCountCurrent > 1)
+	{
+		--m_PageForwardFlipCountCurrent;
+
+	}
+
+	//material changes
 
 }
+
+
+void AStoryBook::ReceiveOnPageSelect()
+{
+	OnPageSelect(m_PageForwardFlipCountCurrent);
+
+
+}
+
 
 void AStoryBook::OnTriggerBeginOverlap
 (
@@ -59,7 +112,7 @@ void AStoryBook::OnTriggerBeginOverlap
 	if (OtherActor->IsA<AASTCharacter>())
 	{
 		m_bIsOverlapping = true;
-		StartOpenBook();
+		ReceiveOnOpenBook();
 				
 		Cast<AASTCharacter>(OtherActor)->AddInteraction(m_InteractDelegate);
 	}
@@ -72,7 +125,7 @@ void AStoryBook::OnTriggerEndOverlap(UPrimitiveComponent *OverlappedComponent, A
 	if (OtherActor->IsA<AASTCharacter>())
 	{
 		m_bIsOverlapping = false;
-		StartCloseBook();
+		ReceiveOnCloseBook();
 
 		Cast<AASTCharacter>(OtherActor)->RemoveInteraction(m_InteractDelegate);
 		
