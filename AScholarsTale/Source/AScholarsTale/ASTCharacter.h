@@ -58,6 +58,18 @@ public:
 		//if currently using roping movement.
 		void LeaveRopingMode();
 	
+	UFUNCTION(BlueprintCallable)
+		void EnableGliding() noexcept { m_bIsGlidingEnabled = true; }
+
+	UFUNCTION(BlueprintCallable)
+		void DisableGliding() noexcept { m_bIsGlidingEnabled = true; }
+
+	UFUNCTION(BlueprintCallable)
+		void EnableJumping() noexcept { m_bIsJumpingEnabled = true; }
+
+	UFUNCTION(BlueprintCallable)
+		void DisableJumping() noexcept { m_bIsJumpingEnabled = true; }
+
 	//override to remove jump decrement on falling movement.
 	//@param DeltaTime: last frame time.
 	virtual void CheckJumpInput(float DeltaTime) override;
@@ -180,6 +192,12 @@ private:
 		class UUserWidget *m_pInteractWidget;
 	
 	float m_WalkingDistSinceFootstep;
+	
 	FVector m_WalkingLastFramePos;
+
+	bool m_bIsGlidingEnabled;
+
+	bool m_bIsJumpingEnabled;
+
 
 };

@@ -18,12 +18,27 @@ public:
 
 
 protected:
-	void StartOpenBook();
+	virtual void BeginPlay() override;
+
+	void FlipPageForward();
+
+	void FlipPageBack();
+
+	void ReceiveOnOpenBook();
+
+	void ReceiveOnCloseBook();
 	
-	void StartCloseBook();
-		
 	UFUNCTION()
-		void OnPageSelect();
+		void ReceiveOnPageSelect();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnOpenBook();
+			
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnCloseBook();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPageSelect(int32 PageForwardFlipCount);
 
 	UFUNCTION()
 		void OnTriggerBeginOverlap
@@ -52,10 +67,16 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		bool m_bIsOpen;
 
+	
+		FInteractCallbackSignature m_InteractDelegate;
+
+	UPROPERTY(EditDefaultsOnly)
+		int32 m_PageForwardFlipCountMax;
+
+	int32 m_PageForwardFlipCountCurrent;
+	
 	bool m_bIsOverlapping;
 
-	UPROPERTY(BlueprintReadWrite)
-		FInteractCallbackSignature m_InteractDelegate;
 
 
 };
