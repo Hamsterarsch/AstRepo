@@ -19,8 +19,8 @@ AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
 	Super(Initializer.SetDefaultSubobjectClass<UASTCharacterMovementComponent>(Super::CharacterMovementComponentName)),
 	m_MaxJumpCount{ 2 },
 	m_WalkingDistSinceFootstep{ 0 },
-	m_bIsGlidingEnabled{ false },
-	m_bIsJumpingEnabled{ false }
+	m_bIsGlidingEnabled{ true },
+	m_bIsJumpingEnabled{ true }
 {
 	PrimaryActorTick.bCanEverTick = true;
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -284,7 +284,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 
 			//Null velocity so it does not influence gliding computations.
 			GetCharacterMovement()->Velocity = FVector::ZeroVector;
-
+			
 			//Safe the remaining jumps on gliding for restore.
 			m_PreGlideJumpCount = JumpCurrentCount;
 			UE_LOG(AST_Movement, Verbose, TEXT("Entering gliding movement"));
