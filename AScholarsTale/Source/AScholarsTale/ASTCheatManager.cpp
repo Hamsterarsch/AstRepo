@@ -89,3 +89,24 @@ void UASTCheatManager::SetCanCharacterGlide(bool bIsAllowed)
 
 
 }
+
+void UASTCheatManager::DebugSaveGame()
+{
+	if (pGameInstance)
+	{
+		pGameInstance->SaveGame();
+
+	}
+
+
+}
+
+void UASTCheatManager::DebugLoadGame()
+{
+	if (pGameInstance)
+	{
+		pGameInstance->LoadGame();
+
+	}
+
+}

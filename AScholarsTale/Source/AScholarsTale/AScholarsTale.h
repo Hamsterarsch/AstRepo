@@ -7,6 +7,9 @@
 //Containslogs for errors resulting from client 'misuse'.
 DECLARE_LOG_CATEGORY_EXTERN(AST_LogLogicError, All, All);
 
+//General errors
+DECLARE_LOG_CATEGORY_EXTERN(AST_Error, All, All);
+
 //Contains general verbose informative logs.
 DECLARE_LOG_CATEGORY_EXTERN(AST_LogInfo, Log, All);
 
@@ -25,7 +28,7 @@ UClass *LoadClassPtr(const TSoftClassPtr<T> &Ptr)
 	if ((pClass = Ptr.Get()) == nullptr)
 	{
 		pClass = Ptr.LoadSynchronous();
-
+		
 
 	}
 	return pClass;
