@@ -59,16 +59,16 @@ public:
 		void LeaveRopingMode();
 	
 	UFUNCTION(BlueprintCallable)
-		void EnableGliding() noexcept { m_bIsGlidingEnabled = true; }
+		void EnableGliding() { m_bIsGlidingEnabled = true; }
 
 	UFUNCTION(BlueprintCallable)
-		void DisableGliding() noexcept { m_bIsGlidingEnabled = true; }
+		void DisableGliding() { m_bIsGlidingEnabled = true; }
 
 	UFUNCTION(BlueprintCallable)
-		void EnableJumping() noexcept { m_bIsJumpingEnabled = true; }
+		void EnableJumping() { m_bIsJumpingEnabled = true; }
 
 	UFUNCTION(BlueprintCallable)
-		void DisableJumping() noexcept { m_bIsJumpingEnabled = true; }
+		void DisableJumping() { m_bIsJumpingEnabled = true; }
 
 	//override to remove jump decrement on falling movement.
 	//@param DeltaTime: last frame time.
@@ -83,6 +83,9 @@ public:
 protected:
 	//Empty
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+		void OnLoadGame(const class UASTSaveGame *pSavegame);
 
 	//Called when the movement mode changes.
 	//Overridden to prevent movement state resets when leaving certain custom modes.

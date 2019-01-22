@@ -9,6 +9,8 @@
 #include "Slingable.h"
 #include "TeleballBase.h"
 #include "Components/InputComponent.h"
+#include "ASTGameInstance.h"
+#include "ASTSaveGame.h"
 #include "UserWidget.h"
 
 #include "Components/CapsuleComponent.h"
@@ -238,14 +240,26 @@ void AASTCharacter::CheckJumpInput(float DeltaTime)
 }
 
 
-
 //Protected-------------------------------------------
 
 void AASTCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	if( auto *pGI{ static_cast<UASTGameInstance *>(GetGameInstance())} )
+	{
+		TScriptDelegate<> Delegate;
+		Delegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(AASTCharacter, OnLoadGame));
+		pGI->m_OnLoadGame.Add(Delegate);
+
+	}
+
+}
+
+void AASTCharacter::OnLoadGame(const class UASTSaveGame *pSavegame)
+{
+	SetActorTransform(pSavegame->m_CurrentPlayerTransform);
+
 }
 
 void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -338,7 +352,6 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 	
 
 }
-
 
 //Private-------------------------------
 void AASTCharacter::MoveRight(const float AxisValue)

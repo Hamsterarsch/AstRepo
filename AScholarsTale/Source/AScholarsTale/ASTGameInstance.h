@@ -6,6 +6,10 @@
 #include "Engine/GameInstance.h"
 #include "ASTGameInstance.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSaveGameDelegate, class UASTSaveGame *, pSavegame);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadGameDelegate, const UASTSaveGame *, pSavegame);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnLoadGameBPEvent, const UASTSaveGame *, pSavegame);
+
 /**
  * 
  */
@@ -16,21 +20,42 @@ class ASCHOLARSTALE_API UASTGameInstance : public UGameInstance
 	
 public:
 	UFUNCTION(BlueprintCallable)
-		void SetCanyonLevelDone() noexcept { m_bIsCanyonLevelDone = true; }
+		void SetCanyonLevelDone() { m_bIsCanyonLevelDone = true; }
 
 	UFUNCTION(BlueprintCallable)
-		void SetMineLevelDone() noexcept { m_bIsMineLevelDone = true; }
+		void SetMineLevelDone() { m_bIsMineLevelDone = true; }
 
 	UFUNCTION(BlueprintCallable)
-		bool IsCanyonLevelDone() const noexcept { return m_bIsCanyonLevelDone; }
+		bool IsCanyonLevelDone() const { return m_bIsCanyonLevelDone; }
 
 	UFUNCTION(BlueprintCallable)
-		bool IsMineLevelDone() const noexcept { return m_bIsMineLevelDone; }
+		bool IsMineLevelDone() const { return m_bIsMineLevelDone; }
+
+	UFUNCTION(BlueprintCallable)
+		void SaveGame();
+
+	UFUNCTION(BlueprintCallable)
+		void LoadGame();
+
+	UFUNCTION(BlueprintCallable)
+		void AddOnLoadEvent(FOnLoadGameBPEvent Event) { m_OnLoadGame.Add(Event); }
+
+	FOnSaveGameDelegate m_OnSaveGame;
+
+	FOnLoadGameDelegate m_OnLoadGame;
+
+
+protected:
+	virtual void LoadComplete(float LoadTime, const FString &MapName) override;
 
 
 private:
+
 	bool m_bIsCanyonLevelDone;
 	bool m_bIsMineLevelDone;
-	   
+
+	UPROPERTY()
+		class UASTSaveGame *m_pLoadedSavegame;
+
 	
 };

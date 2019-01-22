@@ -26,6 +26,11 @@ public:
 	UFUNCTION(exec)
 		void SetCanCharacterGlide(bool bIsAllowed);
 	
+	UFUNCTION(exec)
+		void DebugSaveGame();
+
+	UFUNCTION(exec)
+		void DebugLoadGame();
 
 protected:
 	UPROPERTY()
