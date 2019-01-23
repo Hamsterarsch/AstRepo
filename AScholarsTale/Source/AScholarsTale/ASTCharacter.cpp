@@ -254,6 +254,8 @@ void AASTCharacter::BeginPlay()
 
 	}
 
+	m_WalkingLastGroundedTf = m_WalkingNextToLastGroundedTf = GetActorTransform();
+
 }
 
 void AASTCharacter::OnLoadGame(const class UASTSaveGame *pSavegame)
@@ -267,6 +269,12 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 	UE_LOG(AST_Movement, Verbose, TEXT("---------OnMovementChanged_Stats------------------\n CurrentMode: %01i, LastMode: %02i, CurrentCustom: %03i, LastCustom: %04i"), 
 		GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
 	
+	if (PreviousMovementMode == MOVE_Walking)
+	{
+		//m_WalkingLastGroundedTf = GetActorTransform();
+
+	}
+
 	//Handling for custom movement modes
 	if ( PreviousMovementMode == MOVE_Custom )
 	{
@@ -353,6 +361,16 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 
 }
 
+FTransform AASTCharacter::GetSavedWalkingTransform() const
+{
+	static uint32 GetTimes{};
+	++GetTimes;
+
+	return GetTimes % 2 ? m_WalkingLastGroundedTf : m_WalkingNextToLastGroundedTf;
+
+
+}
+
 //Private-------------------------------
 void AASTCharacter::MoveRight(const float AxisValue)
 {
@@ -401,10 +419,16 @@ void AASTCharacter::AddControlRotationYaw(float AxisValue)
 
 void AASTCharacter::StartGliding()
 {
+	//Prevents instant transition from walking to gliding
+	//(and subsequently back to walking, which triggers all vx assets == bad)
+	if (GetCharacterMovement()->MovementMode == MOVE_Walking)
+	{
+		return;
+	}
+
 	auto *PC = Cast<AASTPlayerController>(Controller);
 	if (PC && m_bIsGlidingEnabled)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Click"));
 		PC->EnableGlidingCamera();
 		GetCharacterMovement()->SetMovementMode(MOVE_Custom, (uint8)EASTMovementMode::Gliding);
 
@@ -566,6 +590,8 @@ void AASTCharacter::TryTeleportToTeleball()
 
 void AASTCharacter::ProcessFootsteps()
 {
+	static uint32 StepCount{};
+	++StepCount;
 	if( auto *pCharMovement = Cast<UCharacterMovementComponent>(GetMovementComponent()) )
 	{
 		if ( pCharMovement->MovementMode == MOVE_Walking )
@@ -576,6 +602,15 @@ void AASTCharacter::ProcessFootsteps()
 			if (m_WalkingDistSinceFootstep >= m_WalkingStepSize)
 			{
 				m_WalkingDistSinceFootstep = 0;
+				if (StepCount % 2)
+				{
+					m_WalkingLastGroundedTf = GetActorTransform();
+				}
+				else
+				{
+					m_WalkingNextToLastGroundedTf = GetActorTransform();
+				}
+
 				OnFootstep();
 
 			}

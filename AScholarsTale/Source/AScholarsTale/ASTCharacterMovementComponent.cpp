@@ -38,8 +38,8 @@ void UASTCharacterMovementComponent::SetMovementMode(EMovementMode NewMovementMo
 	if ( !(NewMovementMode == MOVE_Flying && (MovementMode == MOVE_Custom && CustomMovementMode == (uint8)EASTMovementMode::Gliding)) )
 	{
 		Super::SetMovementMode(NewMovementMode, NewCustomMode);
-
 	}
+
 
 }
 

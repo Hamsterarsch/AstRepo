@@ -99,7 +99,9 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnFootstep();
-
+	
+	UFUNCTION(BlueprintCallable)
+		FTransform GetSavedWalkingTransform() const;
 
 	UPROPERTY(EditDefaultsOnly)
 		float m_WalkingStepSize;
@@ -113,6 +115,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 		float m_SlingForce{ 1000 };
 
+	UPROPERTY(BlueprintReadOnly, Meta = (DisplayName = "Last Grounded Transform"))
+		FTransform m_WalkingLastGroundedTf;
+	
+	UPROPERTY(BlueprintReadOnly, Meta = (DisplayName = "Next To Last Grounded Transform"))
+		FTransform m_WalkingNextToLastGroundedTf;
 	
 private:
 	//Adds an input value to the movement component.
@@ -158,6 +165,26 @@ private:
 
 	void ReceiveOnLanded();
 
+
+	UPROPERTY(EditDefaultsOnly)
+		TSoftClassPtr<class ATeleballBase> m_pTeleballAsset;
+
+	//todo
+	UPROPERTY()
+		unsigned int m_MaxJumpCount;
+
+	UPROPERTY()		
+		class AActor *m_pCurrentlyGrabbed;
+	
+	UPROPERTY()
+		class USceneComponent *m_pGrabbedRoot;
+
+	UPROPERTY()
+		AActor *m_pLastGrabbed;
+
+	UPROPERTY()
+		class UUserWidget *m_pInteractWidget;
+	
 	//The delegate to that interaction functions should be bound to.
 	FInteractSignature m_InteractDelegate;
 
@@ -169,31 +196,7 @@ private:
 
 	//The number of jumps already executed on entering gliding movement.
 	uint32 m_PreGlideJumpCount;
-			
-	//todo
-	UPROPERTY()
-		unsigned int m_MaxJumpCount;
 
-	UPROPERTY()		
-		class AActor *m_pCurrentlyGrabbed;
-
-	UPROPERTY(EditDefaultsOnly)//, Meta = (AllowAbstract=false, AllowedClasses="TeleballBase", ExactClass=false))
-		TSoftClassPtr<class ATeleballBase> m_pTeleballAsset;
-
-	//UPROPERTY(EditDefaultsOnly)
-		//TSoftClassPtr<class UUserWidget> m_pInteractWidgetAsset;
-		
-		//TSoftObjectPtr<UUserWidget> m_Test;
-
-	UPROPERTY()
-		class USceneComponent *m_pGrabbedRoot;
-
-	UPROPERTY()
-		AActor *m_pLastGrabbed;
-
-	UPROPERTY()
-		class UUserWidget *m_pInteractWidget;
-	
 	float m_WalkingDistSinceFootstep;
 	
 	FVector m_WalkingLastFramePos;
