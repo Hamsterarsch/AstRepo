@@ -62,13 +62,13 @@ public:
 		void EnableGliding() { m_bIsGlidingEnabled = true; }
 
 	UFUNCTION(BlueprintCallable)
-		void DisableGliding() { m_bIsGlidingEnabled = true; }
+		void DisableGliding() { m_bIsGlidingEnabled = false; }
 
 	UFUNCTION(BlueprintCallable)
 		void EnableJumping() { m_bIsJumpingEnabled = true; }
 
 	UFUNCTION(BlueprintCallable)
-		void DisableJumping() { m_bIsJumpingEnabled = true; }
+		void DisableJumping() { m_bIsJumpingEnabled = false; }
 
 	//override to remove jump decrement on falling movement.
 	//@param DeltaTime: last frame time.

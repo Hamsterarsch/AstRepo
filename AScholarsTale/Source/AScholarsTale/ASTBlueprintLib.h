@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Runtime/Engine/Classes/Engine/ObjectLibrary.h"
 #include "ASTBlueprintLib.generated.h"
 
 /**
@@ -21,6 +22,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ObjectLibrary")
 		static TArray<UObject *> LoadObjectLibrary(const FString &Path);
 	
+	template<class AssetType>
+		static TArray<AssetType> LoadObjectLibraryTyped(const FString &Path);
+
 	UFUNCTION(BlueprintCallable)
 		static void PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UObject *pContext);
 
@@ -31,3 +35,21 @@ public:
 		static bool IsMapChangeReady(UObject *pContext);
 
 };
+
+template<class AssetType>
+TArray<AssetType> UASTBlueprintLib::LoadObjectLibraryTyped(const FString &Path)
+{	
+	auto *ObjectLibrary = LoadObject<UObjectLibrary>(nullptr, *Path);
+	if (ObjectLibrary)
+	{
+		TArray<AssetType> LibraryAssets{};
+		ObjectLibrary->GetObjects(LibraryAssets);
+
+		return LibraryAssets;
+
+	}
+	return {};
+
+	
+
+}
