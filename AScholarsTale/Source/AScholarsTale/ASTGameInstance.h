@@ -38,7 +38,11 @@ public:
 		void LoadGame();
 
 	UFUNCTION(BlueprintCallable)
+		bool IsSavegameAvailable() const;
+
+	UFUNCTION(BlueprintCallable)
 		void AddOnLoadEvent(FOnLoadGameBPEvent Event) { m_OnLoadGame.Add(Event); }
+
 
 	FOnSaveGameDelegate m_OnSaveGame;
 

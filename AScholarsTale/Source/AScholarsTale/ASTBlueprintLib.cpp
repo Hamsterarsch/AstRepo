@@ -2,6 +2,7 @@
 
 #include "ASTBlueprintLib.h"
 #include "Engine.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Runtime/Engine/Classes/Engine/AssetManager.h"
 
 
@@ -91,4 +92,17 @@ bool UASTBlueprintLib::IsMapChangeReady(UObject *pContext)
 
 }
 
+bool UASTBlueprintLib::GetIsGamepadConnected()
+{
+	auto &GenericApp{ FSlateApplication::Get() };// .GetPlatformApplication();
+
+	if (GenericApp.IsInitialized())
+	{
+		return GenericApp.IsGamepadAttached();
+
+	}
+	return false;
+	
+
+}
 
