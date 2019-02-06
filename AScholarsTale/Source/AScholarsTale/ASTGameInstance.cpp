@@ -75,6 +75,18 @@ void UASTGameInstance::LoadGame()
 
 }
 
+bool UASTGameInstance::IsSavegameAvailable() const
+{
+	auto *pSavegame{ static_cast<UASTSaveGame *>(UGameplayStatics::CreateSaveGameObject(UASTSaveGame::StaticClass())) };
+
+	pSavegame = static_cast<UASTSaveGame *>(UGameplayStatics::LoadGameFromSlot(pSavegame->GetSlotName(), pSavegame->GetUserIndex()));
+	
+	//todo: could lead do save overwrites on load fails not caused by not existent files
+	return pSavegame ? true : false;
+			
+	
+}
+
 void UASTGameInstance::LoadComplete(float LoadTime, const FString &MapName)
 {
 	Super::LoadComplete(LoadTime, MapName);

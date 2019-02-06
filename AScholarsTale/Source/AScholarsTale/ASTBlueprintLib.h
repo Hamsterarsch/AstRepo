@@ -34,6 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static bool IsMapChangeReady(UObject *pContext);
 
+	UFUNCTION(BlueprintCallable)
+		static bool GetIsGamepadConnected();
+
 };
 
 template<class AssetType>

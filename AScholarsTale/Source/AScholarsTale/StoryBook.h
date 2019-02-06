@@ -16,20 +16,25 @@ class ASCHOLARSTALE_API AStoryBook : public AActor
 public:	
 	AStoryBook();
 
+	virtual void PostInitializeComponents() override;
+
+	virtual void Tick(float DeltaTime) override;
+
 
 protected:
 	virtual void BeginPlay() override;
-
-	void FlipPageForward();
-
-	void FlipPageBack();
-
+	
 	void ReceiveOnOpenBook();
 
 	void ReceiveOnCloseBook();
-	
-	UFUNCTION()
-		void ReceiveOnPageSelect();
+
+	void UpdatePageTextures(uint32 FirstPageIndex);
+
+	UFUNCTION(BlueprintCallable)
+		void FlipPageForward();
+
+	UFUNCTION(BlueprintCallable)
+		void FlipPageBack();
 	
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnOpenBook();
@@ -39,6 +44,9 @@ protected:
 	
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnPageSelect(int32 PageForwardFlipCount);
+
+	UFUNCTION()
+		void ReceiveOnPageSelect();
 
 	UFUNCTION()
 		void OnTriggerBeginOverlap
@@ -54,7 +62,7 @@ protected:
 	UFUNCTION()
 		void OnTriggerEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex);
 	
-
+	
 	UPROPERTY(VisibleDefaultsOnly)
 		USkeletalMeshComponent *m_pSkelMesh;
 
@@ -67,15 +75,47 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		bool m_bIsOpen;
 
+	UPROPERTY(EditAnywhere)
+		TArray<class UTexture2D *> m_aPageTextures;
+
+	UPROPERTY(EditAnywhere)
+		FName m_SkelMaterialTargetParameterName;
+
+	UPROPERTY(EditAnywhere)
+		FName m_PageFrontMaterialTargetParameterName;
+
+	UPROPERTY(EditAnywhere)
+		FName m_PageBackMaterialTargetParameterName;
 	
-		FInteractCallbackSignature m_InteractDelegate;
+	UPROPERTY(EditAnywhere)
+		float m_PageFlippedRoll;
 
 	UPROPERTY(EditDefaultsOnly)
 		int32 m_PageForwardFlipCountMax;
+	
+	UPROPERTY(BlueprintReadOnly)
+		bool m_bIsOverlapping;
+	
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pPageMat;
+	
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pPageBackMat;
+
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pSkelFrontMat;
+
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pSkelBackMat;
+
+	FInteractCallbackSignature m_InteractDelegate;
 
 	int32 m_PageForwardFlipCountCurrent;
-	
-	bool m_bIsOverlapping;
+
+	FTransform m_PageInitialTransform;
+
+	float m_PageTargetRoll;
+
 
 
 

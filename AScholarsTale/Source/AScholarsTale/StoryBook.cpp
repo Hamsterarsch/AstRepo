@@ -31,6 +31,59 @@ AStoryBook::AStoryBook() :
 
 }
 
+void AStoryBook::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	   
+	m_PageForwardFlipCountMax = FMath::RoundToInt(m_aPageTextures.Num() % 4);
+	m_PageForwardFlipCountMax = m_PageForwardFlipCountMax == 0 ? 1 : m_PageForwardFlipCountMax;
+
+	UE_LOG(LogTemp, Log, TEXT("Book max flip: %i"), m_PageForwardFlipCountMax);
+
+	if (m_pSkelMesh)
+	{
+		if (auto *pSourceMat{ m_pSkelMesh->GetMaterial(1) })
+		{
+			m_pSkelFrontMat = m_pSkelMesh->CreateDynamicMaterialInstance(1, pSourceMat);
+			m_pSkelMesh->SetMaterial(1, m_pSkelFrontMat);
+		}
+
+		if (auto *pSourceMat{ m_pSkelMesh->GetMaterial(2) })
+		{
+			m_pSkelBackMat = m_pPageMesh->CreateDynamicMaterialInstance(2, pSourceMat);
+			m_pSkelMesh->SetMaterial(2, m_pSkelBackMat);
+		}
+
+	}
+
+	if (m_pPageMesh)
+	{	
+		m_PageInitialTransform = m_pPageMesh->GetRelativeTransform();
+		m_PageTargetRoll = m_PageInitialTransform.GetRotation().Rotator().Pitch;
+
+		if ( auto *pSourceMat{ m_pPageMesh->GetMaterial(0) } )
+		{
+			m_pPageMat = m_pPageMesh->CreateDynamicMaterialInstance(0, pSourceMat);
+		}
+	}
+
+	UpdatePageTextures(0);
+
+
+}
+
+void AStoryBook::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	
+	auto CurrentRotator{ m_pPageMesh->GetRelativeTransform().GetRotation().Rotator() };
+	auto NewRoll{ FMath::FInterpTo(CurrentRotator.Pitch, m_PageTargetRoll, DeltaTime, 12) };
+	CurrentRotator.Pitch = NewRoll;
+	m_pPageMesh->SetRelativeRotation(CurrentRotator);
+
+
+}
+
 void AStoryBook::BeginPlay()
 {
 	Super::BeginPlay();
@@ -62,31 +115,74 @@ void AStoryBook::ReceiveOnOpenBook()
 void AStoryBook::ReceiveOnCloseBook()
 {
 	m_bIsOpen = false;
+	m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;
 	OnCloseBook();
 
 
 }
 
-void AStoryBook::FlipPageForward()
+void AStoryBook::UpdatePageTextures(const uint32 FirstPageIndex)
 {
-	if (m_PageForwardFlipCountCurrent < m_PageForwardFlipCountMax)
+	if (static_cast<uint32>(m_aPageTextures.Num()) >= (FirstPageIndex + 4))
 	{
-		++m_PageForwardFlipCountCurrent;
-
+		m_pSkelFrontMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,	m_aPageTextures[FirstPageIndex    ]);
+		m_pPageMat->SetTextureParameterValue(m_PageFrontMaterialTargetParameterName,	m_aPageTextures[FirstPageIndex + 1]);
+		m_pPageMat->SetTextureParameterValue(m_PageBackMaterialTargetParameterName,		m_aPageTextures[FirstPageIndex + 2]);
+		m_pSkelBackMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,		m_aPageTextures[FirstPageIndex + 3]);
 	}
 
-	//material changes
+}
+
+void AStoryBook::FlipPageForward()
+{
+	if (m_PageForwardFlipCountCurrent >= m_PageForwardFlipCountMax)
+	{
+		return;
+	}
+	++m_PageForwardFlipCountCurrent;
+
+	if( m_PageForwardFlipCountCurrent % 2 )
+	{
+		//roll lerp
+		m_PageTargetRoll = m_PageFlippedRoll;
+	}
+	else
+	{
+		//Reset page
+		m_PageTargetRoll = m_PageFlippedRoll;// m_PageInitialTransform.Rotator().Pitch;
+		m_pPageMesh->SetRelativeTransform(m_PageInitialTransform);
+
+		//material changes
+		UpdatePageTextures(m_PageForwardFlipCountCurrent);		
+	}
+
+
 }
 
 void AStoryBook::FlipPageBack()
 {
-	if (m_PageForwardFlipCountCurrent > 1)
+	if (m_PageForwardFlipCountCurrent < 1)
 	{
-		--m_PageForwardFlipCountCurrent;
+		return;
+	}
+	--m_PageForwardFlipCountCurrent;
 
+	if (m_PageForwardFlipCountCurrent % 2)
+	{
+		//Roll lerp
+		m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;// m_PageInitialTransform.Rotator().Pitch;
+	}
+	else
+	{
+		auto Rotator{ m_PageInitialTransform.Rotator() };
+		Rotator.Pitch = m_PageFlippedRoll;
+		m_pPageMesh->SetRelativeRotation(Rotator);
+		m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;
+
+		//material changes
+		UpdatePageTextures(m_PageForwardFlipCountCurrent);			   
 	}
 
-	//material changes
 
 }
 
