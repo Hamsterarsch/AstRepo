@@ -37,6 +37,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static bool GetIsGamepadConnected();
 
+	UFUNCTION(BlueprintCallable)
+		static void SetVolumeMultiplier(class USoundClass *pSoundClass, float NewMultiplier);
+
+	UFUNCTION(BlueprintCallable)
+		static void SetGlobalGamma(APlayerController *pPlayerController, float Percent);
+
 };
 
 template<class AssetType>

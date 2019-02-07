@@ -10,6 +10,27 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnSaveGameDelegate, class UASTSaveG
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLoadGameDelegate, const UASTSaveGame *, pSavegame);
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnLoadGameBPEvent, const UASTSaveGame *, pSavegame);
 
+USTRUCT(BlueprintType)
+struct FGameMetadata
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintReadWrite)
+		float Gamma{ 0.5 };
+
+	UPROPERTY(BlueprintReadWrite)
+		float VolumeMusicMult{ 1.25 };
+
+	UPROPERTY(BlueprintReadWrite)
+		float VolumeSfxMult{ 1 };
+
+	UPROPERTY(BlueprintReadWrite)
+		float VolumeDialogueMult{ 1 };
+
+
+};
+
 /**
  * 
  */
@@ -42,6 +63,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void AddOnLoadEvent(FOnLoadGameBPEvent Event) { m_OnLoadGame.Add(Event); }
+
+	UPROPERTY(BlueprintReadWrite, DisplayName="Game Metadata")
+		FGameMetadata m_GameMetadata;
+
+	UFUNCTION(BlueprintCallable)
+		void ApplyGameMetadata(class USoundClass *pMusicClass, USoundClass *pSfxClass, USoundClass *pDialogueClass, const FGameMetadata &Metadata, class UCameraComponent *pCameraComp);
 
 
 	FOnSaveGameDelegate m_OnSaveGame;

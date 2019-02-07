@@ -4,6 +4,7 @@
 #include "Engine.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Runtime/Engine/Classes/Engine/AssetManager.h"
+#include "Engine/Classes/Sound/SoundClass.h"
 
 
 UObject *UASTBlueprintLib::LoadObjectLibraryAssetAt(const int Index, const FString &Path)
@@ -103,6 +104,21 @@ bool UASTBlueprintLib::GetIsGamepadConnected()
 	}
 	return false;
 	
+
+}
+
+void UASTBlueprintLib::SetVolumeMultiplier(class USoundClass *pSoundClass, float NewMultiplier)
+{
+	pSoundClass->Properties.Volume = NewMultiplier;
+
+
+}
+
+void UASTBlueprintLib::SetGlobalGamma(APlayerController *pPlayerController, float Percent)
+{
+	auto BiasedGamma = Percent * 2;
+	auto &POV{ pPlayerController->PlayerCameraManager->ViewTarget.POV };
+	POV.PostProcessSettings.ColorGamma = FVector4(BiasedGamma, BiasedGamma, BiasedGamma);
 
 }
 

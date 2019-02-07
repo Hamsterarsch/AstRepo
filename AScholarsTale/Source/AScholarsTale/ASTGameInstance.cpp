@@ -4,6 +4,8 @@
 #include "ASTSaveGame.h"
 #include "AScholarsTale.h"
 #include "Engine/Classes/Kismet/GameplayStatics.h"
+#include "Engine/Classes//Camera/CameraComponent.h"
+#include "ASTBlueprintLib.h"
 #include "Engine/Level.h"
 
 
@@ -85,6 +87,18 @@ bool UASTGameInstance::IsSavegameAvailable() const
 	return pSavegame ? true : false;
 			
 	
+}
+
+void UASTGameInstance::ApplyGameMetadata(class USoundClass *pMusicClass, USoundClass *pSfxClass, USoundClass *pDialogueClass, const FGameMetadata &Metadata, UCameraComponent *pCameraComp)
+{
+	auto BiasedGamma = Metadata.Gamma * 2;
+	pCameraComp->PostProcessSettings.bOverride_ColorGamma = true;
+	pCameraComp->PostProcessSettings.ColorGamma = FVector4(BiasedGamma, BiasedGamma, BiasedGamma);
+	UASTBlueprintLib::SetVolumeMultiplier(pMusicClass, Metadata.VolumeMusicMult);
+	UASTBlueprintLib::SetVolumeMultiplier(pSfxClass, Metadata.VolumeSfxMult);
+	UASTBlueprintLib::SetVolumeMultiplier(pDialogueClass, Metadata.VolumeDialogueMult);
+	
+
 }
 
 void UASTGameInstance::LoadComplete(float LoadTime, const FString &MapName)
