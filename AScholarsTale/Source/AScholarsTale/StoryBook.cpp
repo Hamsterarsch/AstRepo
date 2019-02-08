@@ -5,21 +5,21 @@
 #include "Components/StaticMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Components/InputComponent.h"
+#include "Engine/Classes/Animation/AnimSingleNodeInstance.h"
 
 
 //Public-------------------------
 
 AStoryBook::AStoryBook() :
-	m_PageForwardFlipCountCurrent{ 0 }
+	m_PageForwardFlipCountCurrent{ 0 },
+	m_AnimSlotBody{ TEXT("SlotBody") },
+	m_AnimSlotPage{ TEXT("SlotPage") }
 { 
 	PrimaryActorTick.bCanEverTick = true;
 	m_pSkelMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Book"));
 	//m_pSkelMesh->bEditableWhenInherited = true;
 	SetRootComponent(m_pSkelMesh);
 	
-	m_pPageMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Page"));
-	m_pPageMesh->SetupAttachment(m_pSkelMesh);
-
 	m_pTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("Trigger"));
 	m_pTrigger->SetupAttachment(GetRootComponent());
 
@@ -50,24 +50,26 @@ void AStoryBook::PostInitializeComponents()
 
 		if (auto *pSourceMat{ m_pSkelMesh->GetMaterial(2) })
 		{
-			m_pSkelBackMat = m_pPageMesh->CreateDynamicMaterialInstance(2, pSourceMat);
+			m_pSkelBackMat = m_pSkelMesh->CreateDynamicMaterialInstance(2, pSourceMat);
 			m_pSkelMesh->SetMaterial(2, m_pSkelBackMat);
 		}
 
-	}
-
-	if (m_pPageMesh)
-	{	
-		m_PageInitialTransform = m_pPageMesh->GetRelativeTransform();
-		m_PageTargetRoll = m_PageInitialTransform.GetRotation().Rotator().Pitch;
-
-		if ( auto *pSourceMat{ m_pPageMesh->GetMaterial(0) } )
+		if (auto *pSourceMat{ m_pSkelMesh->GetMaterial(3) })
 		{
-			m_pPageMat = m_pPageMesh->CreateDynamicMaterialInstance(0, pSourceMat);
+			m_pPageMat = m_pSkelMesh->CreateDynamicMaterialInstance(3, pSourceMat);
+			m_pSkelMesh->SetMaterial(3, m_pPageMat);
 		}
 	}
 
 	UpdatePageTextures(0);
+	
+	if (m_pAnimSequenceOpen)
+	{
+		//init close
+		m_pSkelMesh->PlayAnimation(m_pAnimSequenceOpen,	false);
+		m_pSkelMesh->bPauseAnims = true;
+		
+	}
 
 
 }
@@ -75,12 +77,13 @@ void AStoryBook::PostInitializeComponents()
 void AStoryBook::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+
+	/*
 	auto CurrentRotator{ m_pPageMesh->GetRelativeTransform().GetRotation().Rotator() };
 	auto NewRoll{ FMath::FInterpTo(CurrentRotator.Pitch, m_PageTargetRoll, DeltaTime, 12) };
 	CurrentRotator.Pitch = NewRoll;
 	m_pPageMesh->SetRelativeRotation(CurrentRotator);
-
+	*/
 
 }
 
@@ -106,7 +109,24 @@ void AStoryBook::BeginPlay()
 
 void AStoryBook::ReceiveOnOpenBook()
 {
+
 	m_bIsOpen = true;
+	if (m_pAnimSequenceOpen)
+	{
+		m_pSkelMesh->PlayAnimation(m_pAnimSequenceOpen, false);
+		m_pSkelMesh->SetPlayRate(1);
+		m_pSkelMesh->bPauseAnims = false;
+
+		/*
+		m_pSkelMesh->GetAnimInstance()->PlaySlotAnimationAsDynamicMontage
+		(
+			m_pAnimSequenceOpen,
+			m_AnimSlotBody,
+			ANIM_BLEND_TIME,
+			ANIM_BLEND_TIME
+		);*/
+
+	}
 	OnOpenBook();
 	
 
@@ -114,8 +134,16 @@ void AStoryBook::ReceiveOnOpenBook()
 
 void AStoryBook::ReceiveOnCloseBook()
 {
-	m_bIsOpen = false;
-	m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;
+	if (m_pAnimSequenceOpen)
+	{
+		if (auto *pInst{ Cast<UAnimSingleNodeInstance>(m_pSkelMesh->GetAnimInstance()) })
+		{
+			m_pSkelMesh->PlayAnimation(m_pAnimSequenceOpen, false);
+			pInst->SetPosition(1, false);		
+			m_pSkelMesh->SetPlayRate(-1);
+			m_pSkelMesh->bPauseAnims = false;
+		}
+	}
 	OnCloseBook();
 
 
@@ -123,6 +151,13 @@ void AStoryBook::ReceiveOnCloseBook()
 
 void AStoryBook::UpdatePageTextures(const uint32 FirstPageIndex)
 {
+#if WITH_EDITOR
+	if (!m_pSkelBackMat || !m_pSkelFrontMat || !m_pPageMat)
+	{
+		return;
+	}
+#endif
+
 	if (static_cast<uint32>(m_aPageTextures.Num()) >= (FirstPageIndex + 4))
 	{
 		m_pSkelFrontMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,	m_aPageTextures[FirstPageIndex    ]);
@@ -141,6 +176,9 @@ void AStoryBook::FlipPageForward()
 	}
 	++m_PageForwardFlipCountCurrent;
 
+	PlayFlipAnim(true);
+
+	
 	if( m_PageForwardFlipCountCurrent % 2 )
 	{
 		//roll lerp
@@ -148,11 +186,7 @@ void AStoryBook::FlipPageForward()
 	}
 	else
 	{
-		//Reset page
-		m_PageTargetRoll = m_PageFlippedRoll;// m_PageInitialTransform.Rotator().Pitch;
-		m_pPageMesh->SetRelativeTransform(m_PageInitialTransform);
 
-		//material changes
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);		
 	}
 
@@ -167,6 +201,7 @@ void AStoryBook::FlipPageBack()
 	}
 	--m_PageForwardFlipCountCurrent;
 
+	PlayFlipAnim(false);
 	if (m_PageForwardFlipCountCurrent % 2)
 	{
 		//Roll lerp
@@ -176,7 +211,7 @@ void AStoryBook::FlipPageBack()
 	{
 		auto Rotator{ m_PageInitialTransform.Rotator() };
 		Rotator.Pitch = m_PageFlippedRoll;
-		m_pPageMesh->SetRelativeRotation(Rotator);
+		//m_pPageMesh->SetRelativeRotation(Rotator);
 		m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;
 
 		//material changes
@@ -230,4 +265,53 @@ void AStoryBook::OnTriggerEndOverlap(UPrimitiveComponent *OverlappedComponent, A
 
 }
 
+void AStoryBook::PlayFlipAnim(bool bPlayForward)
+{
+	if (!m_pAnimSequenceFlip)
+	{
+		return;
+	}
+
+	if (bPlayForward)
+	{
+		m_pSkelMesh->PlayAnimation(m_pAnimSequenceFlip, false);
+		m_pSkelMesh->SetPlayRate(1);
+		m_pSkelMesh->bPauseAnims = false;
+
+		/*
+		m_pSkelMesh->GetAnimInstance()->Montage_Stop(0);
+		m_pSkelMesh->GetAnimInstance()->PlaySlotAnimationAsDynamicMontage
+		(
+			m_pAnimSequenceFlip,
+			m_AnimSlotPage,
+			ANIM_BLEND_TIME,
+			ANIM_BLEND_TIME
+		);
+		*/
+	}
+	else
+	{
+		m_pSkelMesh->PlayAnimation(m_pAnimSequenceFlip, false);
+		Cast<UAnimSingleNodeInstance>(m_pSkelMesh->GetAnimInstance())->SetPosition(1, false);
+		m_pSkelMesh->SetPlayRate(-1);
+		m_pSkelMesh->bPauseAnims = false;
+
+		/*
+		m_pSkelMesh->GetAnimInstance()->Montage_Stop(0);
+		m_pSkelMesh->GetAnimInstance()->PlaySlotAnimationAsDynamicMontage
+		(
+			m_pAnimSequenceFlip,
+			m_AnimSlotPage,
+			ANIM_BLEND_TIME,
+			ANIM_BLEND_TIME,
+			ANIM_PLAYRATE_BACKWARD,
+			1,
+			-1,
+			ANIM_POSITION_END
+		);
+		*/
+	}
+	
+
+}
 

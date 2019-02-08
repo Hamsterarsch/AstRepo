@@ -62,12 +62,17 @@ protected:
 	UFUNCTION()
 		void OnTriggerEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex);
 	
-	
-	UPROPERTY(VisibleDefaultsOnly)
-		USkeletalMeshComponent *m_pSkelMesh;
+	void PlayFlipAnim(bool bPlayForward);
+
+
+	UPROPERTY(EditAnywhere)
+		UAnimSequence *m_pAnimSequenceOpen;
+
+	UPROPERTY(EditAnywhere)
+		UAnimSequence *m_pAnimSequenceFlip;	
 
 	UPROPERTY(VisibleDefaultsOnly)
-		UStaticMeshComponent *m_pPageMesh;
+		USkeletalMeshComponent *m_pSkelMesh;
 
 	UPROPERTY(VisibleDefaultsOnly)
 		class USphereComponent *m_pTrigger;
@@ -89,9 +94,6 @@ protected:
 	
 	UPROPERTY(EditAnywhere)
 		float m_PageFlippedRoll;
-
-	UPROPERTY(EditDefaultsOnly)
-		int32 m_PageForwardFlipCountMax;
 	
 	UPROPERTY(BlueprintReadOnly)
 		bool m_bIsOverlapping;
@@ -116,6 +118,17 @@ protected:
 
 	float m_PageTargetRoll;
 
+	const FName m_AnimSlotBody;
+
+	const FName m_AnimSlotPage;
+	
+	int32 m_PageForwardFlipCountMax;
+
+	const float ANIM_POSITION_END{ 1 };
+	const float ANIM_POSITION_BEGIN{ 0 };
+	const float ANIM_PLAYRATE_FORWARD{ 1 };
+	const float ANIM_PLAYRATE_BACKWARD{ -1 };
+	const float ANIM_BLEND_TIME{ 0 };
 
 
 
