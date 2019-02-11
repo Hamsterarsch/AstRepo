@@ -6,6 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/InputComponent.h"
 #include "Engine/Classes/Animation/AnimSingleNodeInstance.h"
+#include "ASTGameInstance.h"
 
 
 //Public-------------------------
@@ -158,13 +159,31 @@ void AStoryBook::UpdatePageTextures(const uint32 FirstPageIndex)
 	}
 #endif
 
-	if (static_cast<uint32>(m_aPageTextures.Num()) >= (FirstPageIndex + 4))
+	TArray<class UTexture2D *> *paActiveTextureSet;
+	auto *pGI{ Cast<UASTGameInstance>(GetGameInstance()) };
+
+	if (m_aPageTexturesOverride.Num() > 0)
 	{
-		m_pSkelFrontMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,	m_aPageTextures[FirstPageIndex    ]);
-		m_pPageMat->SetTextureParameterValue(m_PageFrontMaterialTargetParameterName,	m_aPageTextures[FirstPageIndex + 1]);
-		m_pPageMat->SetTextureParameterValue(m_PageBackMaterialTargetParameterName,		m_aPageTextures[FirstPageIndex + 2]);
-		m_pSkelBackMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,		m_aPageTextures[FirstPageIndex + 3]);
+		paActiveTextureSet = &m_aPageTexturesOverride;
 	}
+	else if( pGI && pGI->IsMineLevelDone())
+	{
+		paActiveTextureSet = &m_aPageTexturesMineDone;
+	}
+	else
+	{
+		paActiveTextureSet = &m_aPageTextures;
+	}
+	
+	if (static_cast<uint32>(paActiveTextureSet->Num()) >= (FirstPageIndex + 4))
+	{
+		
+		m_pSkelFrontMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,	(*paActiveTextureSet)[FirstPageIndex    ]);
+		m_pPageMat->SetTextureParameterValue(m_PageFrontMaterialTargetParameterName,	(*paActiveTextureSet)[FirstPageIndex + 1]);
+		m_pPageMat->SetTextureParameterValue(m_PageBackMaterialTargetParameterName,		(*paActiveTextureSet)[FirstPageIndex + 2]);
+		m_pSkelBackMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,		(*paActiveTextureSet)[FirstPageIndex + 3]);
+	}
+
 
 }
 

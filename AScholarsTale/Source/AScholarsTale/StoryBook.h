@@ -84,6 +84,12 @@ protected:
 		TArray<class UTexture2D *> m_aPageTextures;
 
 	UPROPERTY(EditAnywhere)
+		TArray<class UTexture2D *> m_aPageTexturesMineDone;
+
+	UPROPERTY(EditAnywhere)
+		TArray<class UTexture2D *> m_aPageTexturesOverride;
+
+	UPROPERTY(EditAnywhere)
 		FName m_SkelMaterialTargetParameterName;
 
 	UPROPERTY(EditAnywhere)
