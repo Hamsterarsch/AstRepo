@@ -28,6 +28,11 @@ public:
 
 
 protected:
+	UFUNCTION(BlueprintNativeEvent)
+		bool ShouldPlay();
+
+	bool ShouldPlay_Implementation() { return true; }
+
 	virtual void BeginPlay() override;
 
 	virtual void PostInitializeComponents() override;

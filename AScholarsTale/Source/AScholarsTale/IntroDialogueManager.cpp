@@ -32,6 +32,12 @@ void AIntroDialogueManager::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (!ShouldPlay())
+	{
+		return;
+
+	}
+
 	if (m_apDialogueWaves.Num() <= 0)
 	{
 		return;
@@ -98,6 +104,12 @@ void AIntroDialogueManager::ReceiveOnDialoguesFinished()
 
 void AIntroDialogueManager::StartPlayDialogues()
 {
+	if (!ShouldPlay())
+	{
+		return;
+
+	}
+
 	if (m_apSpawnedDialogues.Num() > 0)
 	{
 		if (auto *pFirstDialogue{ m_apSpawnedDialogues[0] })
