@@ -94,9 +94,9 @@ void UASTGameInstance::ApplyGameMetadata(class USoundClass *pMusicClass, USoundC
 	auto BiasedGamma = Metadata.Gamma * 2;
 	pCameraComp->PostProcessSettings.bOverride_ColorGamma = true;
 	pCameraComp->PostProcessSettings.ColorGamma = FVector4(BiasedGamma, BiasedGamma, BiasedGamma);
-	UASTBlueprintLib::SetVolumeMultiplier(pMusicClass, Metadata.VolumeMusicMult);
-	UASTBlueprintLib::SetVolumeMultiplier(pSfxClass, Metadata.VolumeSfxMult);
-	UASTBlueprintLib::SetVolumeMultiplier(pDialogueClass, Metadata.VolumeDialogueMult);
+	UASTBlueprintLib::SetVolumeMultiplier(pMusicClass, Metadata.VolumeMusicMult * 2 * m_MusicVolume);
+	UASTBlueprintLib::SetVolumeMultiplier(pSfxClass, Metadata.VolumeSfxMult * 2 * m_SFXVolume);
+	UASTBlueprintLib::SetVolumeMultiplier(pDialogueClass, Metadata.VolumeDialogueMult * 2 * m_DialogueVolume);
 	
 
 }

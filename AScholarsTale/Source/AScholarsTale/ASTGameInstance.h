@@ -79,6 +79,14 @@ public:
 protected:
 	virtual void LoadComplete(float LoadTime, const FString &MapName) override;
 
+	UPROPERTY(EditAnywhere)
+		float m_MusicVolume{ 1 };
+
+	UPROPERTY(EditAnywhere)
+		float m_SFXVolume{ 1 };
+
+	UPROPERTY(EditAnywhere)
+		float m_DialogueVolume{ 1 };
 
 private:
 
