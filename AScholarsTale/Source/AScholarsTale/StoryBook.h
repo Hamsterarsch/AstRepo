@@ -135,6 +135,8 @@ protected:
 	
 	int32 m_PageForwardFlipCountMax;
 
+	bool m_bPageIsInForwardPos;
+
 	const float ANIM_POSITION_END{ 1 };
 	const float ANIM_POSITION_BEGIN{ 0 };
 	const float ANIM_PLAYRATE_FORWARD{ 1 };
