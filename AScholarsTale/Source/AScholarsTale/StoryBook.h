@@ -48,6 +48,12 @@ protected:
 		void OnCloseBook();
 	
 	UFUNCTION(BlueprintImplementableEvent)
+		void OnPageFlipForward();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPageFlipBackward();
+	   
+	UFUNCTION(BlueprintImplementableEvent)
 		void OnPageSelect(int32 PageForwardFlipCount);
 
 	UFUNCTION()

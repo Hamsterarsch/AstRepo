@@ -200,16 +200,16 @@ TArray<class UTexture2D *> * AStoryBook::DetermineActiveTexSet()
 
 void AStoryBook::FlipPageForward()
 {
-	if (m_PageForwardFlipCountCurrent >= m_PageForwardFlipCountMax)
+	if (m_PageForwardFlipCountCurrent >= m_PageForwardFlipCountMax - 2)
 	{
 		return;
 	}
-
+	OnPageFlipForward();
 	PlayFlipAnim(true);
 		
+	m_PageForwardFlipCountCurrent += 2;
 	if( !m_bPageIsInForwardPos )
 	{
-		m_PageForwardFlipCountCurrent += 2;
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);		
 	}
 	m_bPageIsInForwardPos = false;
@@ -219,15 +219,16 @@ void AStoryBook::FlipPageForward()
 
 void AStoryBook::FlipPageBack()
 {
-	if (m_PageForwardFlipCountCurrent < 1)
+	if (m_PageForwardFlipCountCurrent < 2)
 	{
 		return;
 	}
-
+	OnPageFlipBackward();
 	PlayFlipAnim(false);
+
+	m_PageForwardFlipCountCurrent -= 2;
 	if ( m_bPageIsInForwardPos )
 	{
-		m_PageForwardFlipCountCurrent -= 2;
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);			   
 	}
 	m_bPageIsInForwardPos = true;
