@@ -14,7 +14,8 @@
 AStoryBook::AStoryBook() :
 	m_PageForwardFlipCountCurrent{ 0 },
 	m_AnimSlotBody{ TEXT("SlotBody") },
-	m_AnimSlotPage{ TEXT("SlotPage") }
+	m_AnimSlotPage{ TEXT("SlotPage") },
+	m_bPageIsInForwardPos{ true }
 { 
 	PrimaryActorTick.bCanEverTick = true;
 	m_pSkelMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Book"));
@@ -37,7 +38,7 @@ void AStoryBook::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	   
 	auto *paTextureSet{ DetermineActiveTexSet() };
-	m_PageForwardFlipCountMax = FMath::RoundToInt(paTextureSet->Num() / 4);
+	m_PageForwardFlipCountMax = FMath::RoundToInt(paTextureSet->Num() / 2);
 	m_PageForwardFlipCountMax = m_PageForwardFlipCountMax == 0 ? 1 : m_PageForwardFlipCountMax;
 
 	UE_LOG(LogTemp, Log, TEXT("Book max flip: %i"), m_PageForwardFlipCountMax);
@@ -203,22 +204,16 @@ void AStoryBook::FlipPageForward()
 	{
 		return;
 	}
-	++m_PageForwardFlipCountCurrent;
 
 	PlayFlipAnim(true);
-
-	
-	if( m_PageForwardFlipCountCurrent % 2 )
+		
+	if( !m_bPageIsInForwardPos )
 	{
-		//roll lerp
-		m_PageTargetRoll = m_PageFlippedRoll;
-	}
-	else
-	{
-
+		m_PageForwardFlipCountCurrent += 2;
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);		
 	}
-
+	m_bPageIsInForwardPos = false;
+	
 
 }
 
@@ -228,24 +223,14 @@ void AStoryBook::FlipPageBack()
 	{
 		return;
 	}
-	--m_PageForwardFlipCountCurrent;
 
 	PlayFlipAnim(false);
-	if (m_PageForwardFlipCountCurrent % 2)
+	if ( m_bPageIsInForwardPos )
 	{
-		//Roll lerp
-		m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;// m_PageInitialTransform.Rotator().Pitch;
-	}
-	else
-	{
-		auto Rotator{ m_PageInitialTransform.Rotator() };
-		Rotator.Pitch = m_PageFlippedRoll;
-		//m_pPageMesh->SetRelativeRotation(Rotator);
-		m_PageTargetRoll = m_PageInitialTransform.Rotator().Pitch;
-
-		//material changes
+		m_PageForwardFlipCountCurrent -= 2;
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);			   
 	}
+	m_bPageIsInForwardPos = true;
 
 
 }
