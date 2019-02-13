@@ -7,6 +7,7 @@
 #include "Engine/Classes//Camera/CameraComponent.h"
 #include "ASTBlueprintLib.h"
 #include "Engine/Level.h"
+#include "ASTCharacter.h"
 
 
 
@@ -26,7 +27,7 @@ void UASTGameInstance::SaveGame()
 		return;
 	}
 
-	auto *pPlayer{ pPC->GetPawn() };
+	auto *pPlayer{ Cast<AASTCharacter>(pPC->GetPawn()) };
 	if (!pPlayer)
 	{
 		UE_LOG(AST_Error, Error, TEXT("Save failed: could not fetch player"));
@@ -37,7 +38,8 @@ void UASTGameInstance::SaveGame()
 	pSavegame->m_bIsCanyonLevelCompleted = m_bIsCanyonLevelDone;
 	pSavegame->m_CurrentPlayerTransform = pPlayer->GetActorTransform();
 	pSavegame->m_CurrentLevelName = UGameplayStatics::GetCurrentLevelName(pPlayer->GetWorld(), true);//->GetLevel()->GetPathName(nullptr);
-	
+	pSavegame->m_bIsGlidingUnlocked = pPlayer->GetIsGlidingEnabled();
+
 	m_OnSaveGame.Broadcast(pSavegame);
 
 	if ( !UGameplayStatics::SaveGameToSlot(pSavegame, pSavegame->GetSlotName(), pSavegame->GetUserIndex()) )
@@ -65,10 +67,19 @@ void UASTGameInstance::LoadGame()
 	
 	
 	UGameplayStatics::OpenLevel(GetWorld(), *(pSavegame->m_CurrentLevelName));
-	auto *pPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+	auto *pPlayer = Cast<AASTCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	//auto Location = pSavegame->m_CurrentPlayerTransform.GetLocation();
 	
-	pPawn->SetActorTransform(pSavegame->m_CurrentPlayerTransform);
+	pPlayer->SetActorTransform(pSavegame->m_CurrentPlayerTransform);
+	if (pSavegame->m_bIsGlidingUnlocked)
+	{
+		pPlayer->EnableGliding();
+	}
+	else
+	{
+		pPlayer->DisableGliding();
+
+	}
 	//pPawn->TeleportTo(Location, pSavegame->m_CurrentPlayerTransform.GetRotation().Rotator());
 	
 	m_pLoadedSavegame = pSavegame;

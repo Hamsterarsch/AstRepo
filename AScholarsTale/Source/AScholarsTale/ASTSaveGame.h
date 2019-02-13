@@ -32,6 +32,9 @@ public:
 	
 	UPROPERTY(BlueprintReadWrite)
 		TMap<FString, bool> m_NarratorMap;
+
+	UPROPERTY(BlueprintReadWrite)
+		bool m_bIsGlidingUnlocked{ false };
 	
 
 

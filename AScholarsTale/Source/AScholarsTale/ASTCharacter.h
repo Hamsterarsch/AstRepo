@@ -74,6 +74,8 @@ public:
 	//@param DeltaTime: last frame time.
 	virtual void CheckJumpInput(float DeltaTime) override;
 
+	bool GetIsGlidingEnabled() const { return m_bIsGlidingEnabled; }
+
 	
 	UPROPERTY()
 		//The rope that is currently in proximity.

@@ -37,7 +37,7 @@ void AStoryBook::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	   
 	auto *paTextureSet{ DetermineActiveTexSet() };
-	m_PageForwardFlipCountMax = FMath::RoundToInt(paTextureSet->Num() % 4);
+	m_PageForwardFlipCountMax = FMath::RoundToInt(paTextureSet->Num() / 4);
 	m_PageForwardFlipCountMax = m_PageForwardFlipCountMax == 0 ? 1 : m_PageForwardFlipCountMax;
 
 	UE_LOG(LogTemp, Log, TEXT("Book max flip: %i"), m_PageForwardFlipCountMax);
