@@ -24,9 +24,11 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
-	void ReceiveOnOpenBook();
+	UFUNCTION(BlueprintCallable)
+		void ReceiveOnOpenBook();
 
-	void ReceiveOnCloseBook();
+	UFUNCTION(BlueprintCallable)
+		void ReceiveOnCloseBook();
 
 	void UpdatePageTextures(uint32 FirstPageIndex);
 
