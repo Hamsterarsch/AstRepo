@@ -36,7 +36,8 @@ void AStoryBook::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 	   
-	m_PageForwardFlipCountMax = FMath::RoundToInt(m_aPageTextures.Num() % 4);
+	auto *paTextureSet{ DetermineActiveTexSet() };
+	m_PageForwardFlipCountMax = FMath::RoundToInt(paTextureSet->Num() % 4);
 	m_PageForwardFlipCountMax = m_PageForwardFlipCountMax == 0 ? 1 : m_PageForwardFlipCountMax;
 
 	UE_LOG(LogTemp, Log, TEXT("Book max flip: %i"), m_PageForwardFlipCountMax);
@@ -159,22 +160,8 @@ void AStoryBook::UpdatePageTextures(const uint32 FirstPageIndex)
 	}
 #endif
 
-	TArray<class UTexture2D *> *paActiveTextureSet;
-	auto *pGI{ Cast<UASTGameInstance>(GetGameInstance()) };
-
-	if (m_aPageTexturesOverride.Num() > 0)
-	{
-		paActiveTextureSet = &m_aPageTexturesOverride;
-	}
-	else if( pGI && pGI->IsMineLevelDone())
-	{
-		paActiveTextureSet = &m_aPageTexturesMineDone;
-	}
-	else
-	{
-		paActiveTextureSet = &m_aPageTextures;
-	}
-	
+	auto *paActiveTextureSet{ DetermineActiveTexSet() };
+		
 	if (static_cast<uint32>(paActiveTextureSet->Num()) >= (FirstPageIndex + 4))
 	{
 		
@@ -183,6 +170,29 @@ void AStoryBook::UpdatePageTextures(const uint32 FirstPageIndex)
 		m_pPageMat->SetTextureParameterValue(m_PageBackMaterialTargetParameterName,		(*paActiveTextureSet)[FirstPageIndex + 2]);
 		m_pSkelBackMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,		(*paActiveTextureSet)[FirstPageIndex + 3]);
 	}
+
+
+}
+
+TArray<class UTexture2D *> * AStoryBook::DetermineActiveTexSet()
+{
+	TArray<class UTexture2D *> *paActiveTextureSet;
+	auto *pGI{ Cast<UASTGameInstance>(GetGameInstance()) };
+
+	if (m_aPageTexturesOverride.Num() > 0)
+	{
+		paActiveTextureSet = &m_aPageTexturesOverride;
+	}
+	else if (pGI && pGI->IsMineLevelDone())
+	{
+		paActiveTextureSet = &m_aPageTexturesMineDone;
+	}
+	else
+	{
+		paActiveTextureSet = &m_aPageTextures;
+	}
+
+	return paActiveTextureSet;
 
 
 }

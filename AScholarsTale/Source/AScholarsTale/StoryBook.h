@@ -24,14 +24,17 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	
+	void UpdatePageTextures(uint32 FirstPageIndex);
+
+	//should be const
+	TArray<class UTexture2D *> *DetermineActiveTexSet();
+
 	UFUNCTION(BlueprintCallable)
 		void ReceiveOnOpenBook();
 
 	UFUNCTION(BlueprintCallable)
 		void ReceiveOnCloseBook();
-
-	void UpdatePageTextures(uint32 FirstPageIndex);
-
+	
 	UFUNCTION(BlueprintCallable)
 		void FlipPageForward();
 
