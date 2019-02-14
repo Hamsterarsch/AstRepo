@@ -130,6 +130,15 @@ void AStoryBook::ReceiveOnOpenBook()
 		);*/
 
 	}
+
+	if (m_pAnimSequenceFlip && !m_bPageIsInForwardPos)
+	{
+		m_pSkelMesh->PlayAnimation(m_pAnimSequenceFlip, false);
+		Cast<UAnimSingleNodeInstance>(m_pSkelMesh->GetAnimInstance())->SetPosition(1, false);
+		m_pSkelMesh->bPauseAnims = true;
+	}
+
+
 	OnOpenBook();
 	
 
@@ -147,6 +156,13 @@ void AStoryBook::ReceiveOnCloseBook()
 			m_pSkelMesh->bPauseAnims = false;
 		}
 	}
+
+	if (!m_bPageIsInForwardPos)
+	{
+		
+
+	}
+
 	OnCloseBook();
 
 
@@ -163,7 +179,7 @@ void AStoryBook::UpdatePageTextures(const uint32 FirstPageIndex)
 
 	auto *paActiveTextureSet{ DetermineActiveTexSet() };
 		
-	if (static_cast<uint32>(paActiveTextureSet->Num()) >= (FirstPageIndex + 4))
+	if (static_cast<uint32>(paActiveTextureSet->Num()) >= (FirstPageIndex + 4) && FirstPageIndex >= 0)
 	{
 		
 		m_pSkelFrontMat->SetTextureParameterValue(m_SkelMaterialTargetParameterName,	(*paActiveTextureSet)[FirstPageIndex    ]);
@@ -207,13 +223,13 @@ void AStoryBook::FlipPageForward()
 	OnPageFlipForward();
 	PlayFlipAnim(true);
 		
-	m_PageForwardFlipCountCurrent += 2;
 	if( !m_bPageIsInForwardPos )
 	{
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);		
 	}
+	m_PageForwardFlipCountCurrent += 2;
 	m_bPageIsInForwardPos = false;
-	
+		
 
 }
 
@@ -232,6 +248,7 @@ void AStoryBook::FlipPageBack()
 		UpdatePageTextures(m_PageForwardFlipCountCurrent);			   
 	}
 	m_bPageIsInForwardPos = true;
+	
 
 
 }
