@@ -67,9 +67,11 @@ void UASTGameInstance::LoadGame()
 	
 	
 	UGameplayStatics::OpenLevel(GetWorld(), *(pSavegame->m_CurrentLevelName));
+
+	/*
 	auto *pPlayer = Cast<AASTCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	//auto Location = pSavegame->m_CurrentPlayerTransform.GetLocation();
-	
+	//has to be done in levels when player is initialized ( actually only in player)
 	pPlayer->SetActorTransform(pSavegame->m_CurrentPlayerTransform);
 	if (pSavegame->m_bIsGlidingUnlocked)
 	{
@@ -81,7 +83,8 @@ void UASTGameInstance::LoadGame()
 
 	}
 	//pPawn->TeleportTo(Location, pSavegame->m_CurrentPlayerTransform.GetRotation().Rotator());
-	
+	*/
+
 	m_pLoadedSavegame = pSavegame;
 
 
