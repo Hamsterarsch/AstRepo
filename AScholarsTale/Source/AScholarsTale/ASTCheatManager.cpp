@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "ASTPlayerController.h"
 #include "ASTCharacter.h"
+#include "Engine/Classes/Kismet/GameplayStatics.h"
 
 //Public----------------
 
@@ -108,5 +109,36 @@ void UASTCheatManager::DebugLoadGame()
 		pGameInstance->LoadGame();
 
 	}
+
+}
+
+void UASTCheatManager::TeleportToCanyonPoint(uint32 Index)
+{
+	if (UGameplayStatics::GetCurrentLevelName(GetWorld(), true) != TEXT("Canyon"))
+	{
+		UGameplayStatics::OpenLevel(this, TEXT("Canyon"));
+	}
+
+	if (auto *pPawn{ GetWorld()->GetFirstPlayerController()->GetPawn() })
+	{
+		switch (Index)
+		{
+		case 0:
+			pPawn->TeleportTo(m_CanyonZero.GetLocation(), m_CanyonZero.Rotator());
+			break;
+		case 1:
+			pPawn->TeleportTo(m_CanyonFirst.GetLocation(), m_CanyonFirst.Rotator());
+			break;
+		case 2:
+			pPawn->TeleportTo(m_CanyonSecond.GetLocation(), m_CanyonSecond.Rotator());
+			break;
+		}
+
+		if ( auto *pPlayer{ Cast<AASTCharacter>(pPawn) } )
+		{
+			pPlayer->EnableGliding();
+		}
+	}
+
 
 }

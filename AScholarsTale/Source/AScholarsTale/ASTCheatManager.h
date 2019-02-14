@@ -32,10 +32,21 @@ public:
 	UFUNCTION(exec)
 		void DebugLoadGame();
 
+	UFUNCTION(exec)
+		void TeleportToCanyonPoint(uint32 Index);
+
 protected:
 	UPROPERTY()
 		class UASTGameInstance *pGameInstance;
 
+	UPROPERTY(EditAnywhere)
+		FTransform m_CanyonZero;
+
+	UPROPERTY(EditAnywhere)
+		FTransform m_CanyonFirst;
+
+	UPROPERTY(EditAnywhere)
+		FTransform m_CanyonSecond;
 
 	
 	
