@@ -7,6 +7,9 @@
 //Containslogs for errors resulting from client 'misuse'.
 DECLARE_LOG_CATEGORY_EXTERN(AST_LogLogicError, All, All);
 
+//General errors
+DECLARE_LOG_CATEGORY_EXTERN(AST_Error, All, All);
+
 //Contains general verbose informative logs.
 DECLARE_LOG_CATEGORY_EXTERN(AST_LogInfo, Log, All);
 
@@ -19,13 +22,13 @@ DECLARE_LOG_CATEGORY_EXTERN(AST_Interact, Log, All);
 
 
 template<class T>
-UClass *LoadClassPtr(const TSoftClassPtr<T> &Ptr)
+T *LoadClassPtr(const TSoftClassPtr<T> &Ptr)
 {	
-	UClass *pClass{ nullptr };
+	T *pClass{ nullptr };
 	if ((pClass = Ptr.Get()) == nullptr)
 	{
 		pClass = Ptr.LoadSynchronous();
-
+		
 
 	}
 	return pClass;
@@ -34,9 +37,9 @@ UClass *LoadClassPtr(const TSoftClassPtr<T> &Ptr)
 }
 
 template<class T>
-UObject *LoadObjectPtr(const TSoftObjectPtr<T> &Ptr)
+T *LoadObjectPtr(const TSoftObjectPtr<T> &Ptr)
 {
-	UObject *pObject{ nullptr };
+	T *pObject{ nullptr };
 	if ((pObject = Ptr.Get()) == nullptr)
 	{
 		pObject = Ptr.LoadSynchronous();

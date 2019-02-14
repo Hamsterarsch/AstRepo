@@ -35,11 +35,18 @@ void UASTCharacterMovementComponent::SetMovementMode(EMovementMode NewMovementMo
 {
 	//Hack that prevents transition from gliding mode to flying which happens for whatever reason
 	//todo: find cause
+	if (NewMovementMode == MOVE_Flying)
+	{
+		return;
+
+	}
+	Super::SetMovementMode(NewMovementMode, NewCustomMode);
+	/*
 	if ( !(NewMovementMode == MOVE_Flying && (MovementMode == MOVE_Custom && CustomMovementMode == (uint8)EASTMovementMode::Gliding)) )
 	{
 		Super::SetMovementMode(NewMovementMode, NewCustomMode);
-
 	}
+	*/
 
 }
 

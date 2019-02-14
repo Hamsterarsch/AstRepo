@@ -58,9 +58,23 @@ public:
 		//if currently using roping movement.
 		void LeaveRopingMode();
 	
+	UFUNCTION(BlueprintCallable)
+		void EnableGliding() { m_bIsGlidingEnabled = true; }
+
+	UFUNCTION(BlueprintCallable)
+		void DisableGliding() { m_bIsGlidingEnabled = false; }
+
+	UFUNCTION(BlueprintCallable)
+		void EnableJumping() { m_bIsJumpingEnabled = true; }
+
+	UFUNCTION(BlueprintCallable)
+		void DisableJumping() { m_bIsJumpingEnabled = false; }
+
 	//override to remove jump decrement on falling movement.
 	//@param DeltaTime: last frame time.
 	virtual void CheckJumpInput(float DeltaTime) override;
+
+	bool GetIsGlidingEnabled() const { return m_bIsGlidingEnabled; }
 
 	
 	UPROPERTY()
@@ -71,6 +85,9 @@ public:
 protected:
 	//Empty
 	virtual void BeginPlay() override;
+
+	UFUNCTION()
+		void OnLoadGame(const class UASTSaveGame *pSavegame);
 
 	//Called when the movement mode changes.
 	//Overridden to prevent movement state resets when leaving certain custom modes.
@@ -84,7 +101,9 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 		void OnFootstep();
-
+	
+	UFUNCTION(BlueprintCallable)
+		FTransform GetSavedWalkingTransform() const;
 
 	UPROPERTY(EditDefaultsOnly)
 		float m_WalkingStepSize;
@@ -98,6 +117,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 		float m_SlingForce{ 1000 };
 
+	UPROPERTY(BlueprintReadOnly, Meta = (DisplayName = "Last Grounded Transform"))
+		FTransform m_WalkingLastGroundedTf;
+	
+	UPROPERTY(BlueprintReadOnly, Meta = (DisplayName = "Next To Last Grounded Transform"))
+		FTransform m_WalkingNextToLastGroundedTf;
 	
 private:
 	//Adds an input value to the movement component.
@@ -143,6 +167,26 @@ private:
 
 	void ReceiveOnLanded();
 
+
+	UPROPERTY(EditDefaultsOnly)
+		TSoftClassPtr<class ATeleballBase> m_pTeleballAsset;
+
+	//todo
+	UPROPERTY()
+		unsigned int m_MaxJumpCount;
+
+	UPROPERTY()		
+		class AActor *m_pCurrentlyGrabbed;
+	
+	UPROPERTY()
+		class USceneComponent *m_pGrabbedRoot;
+
+	UPROPERTY()
+		AActor *m_pLastGrabbed;
+
+	UPROPERTY()
+		class UUserWidget *m_pInteractWidget;
+	
 	//The delegate to that interaction functions should be bound to.
 	FInteractSignature m_InteractDelegate;
 
@@ -154,32 +198,14 @@ private:
 
 	//The number of jumps already executed on entering gliding movement.
 	uint32 m_PreGlideJumpCount;
-			
-	//todo
-	UPROPERTY()
-		unsigned int m_MaxJumpCount;
 
-	UPROPERTY()		
-		class AActor *m_pCurrentlyGrabbed;
-
-	UPROPERTY(EditDefaultsOnly)//, Meta = (AllowAbstract=false, AllowedClasses="TeleballBase", ExactClass=false))
-		TSoftClassPtr<class ATeleballBase> m_pTeleballAsset;
-
-	//UPROPERTY(EditDefaultsOnly)
-		//TSoftClassPtr<class UUserWidget> m_pInteractWidgetAsset;
-		
-		//TSoftObjectPtr<UUserWidget> m_Test;
-
-	UPROPERTY()
-		class USceneComponent *m_pGrabbedRoot;
-
-	UPROPERTY()
-		AActor *m_pLastGrabbed;
-
-	UPROPERTY()
-		class UUserWidget *m_pInteractWidget;
-	
 	float m_WalkingDistSinceFootstep;
+	
 	FVector m_WalkingLastFramePos;
+
+	bool m_bIsGlidingEnabled;
+
+	bool m_bIsJumpingEnabled;
+
 
 };

@@ -1,5 +1,5 @@
 #include "ASTPlayerController.h"
-
+#include "ASTCheatManager.h"
 
 //Public---------------
 
@@ -8,6 +8,8 @@ AASTPlayerController::AASTPlayerController()
 	PrimaryActorTick.bCanEverTick = true;
 	bAttachToPawn = true;
 	PlayerCameraManagerClass = AASTCameraManager::StaticClass(); 
+
+	CheatClass = UASTCheatManager::StaticClass();
 
 
 }

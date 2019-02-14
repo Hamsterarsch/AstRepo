@@ -9,6 +9,8 @@
 #include "Slingable.h"
 #include "TeleballBase.h"
 #include "Components/InputComponent.h"
+#include "ASTGameInstance.h"
+#include "ASTSaveGame.h"
 #include "UserWidget.h"
 
 #include "Components/CapsuleComponent.h"
@@ -18,7 +20,9 @@
 AASTCharacter::AASTCharacter(const FObjectInitializer &Initializer) :
 	Super(Initializer.SetDefaultSubobjectClass<UASTCharacterMovementComponent>(Super::CharacterMovementComponentName)),
 	m_MaxJumpCount{ 2 },
-	m_WalkingDistSinceFootstep{ 0 }
+	m_WalkingDistSinceFootstep{ 0 },
+	m_bIsGlidingEnabled{ true },
+	m_bIsJumpingEnabled{ true }
 {
 	PrimaryActorTick.bCanEverTick = true;
 	m_pCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
@@ -236,14 +240,28 @@ void AASTCharacter::CheckJumpInput(float DeltaTime)
 }
 
 
-
 //Protected-------------------------------------------
 
 void AASTCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	
+	if( auto *pGI{ static_cast<UASTGameInstance *>(GetGameInstance())} )
+	{
+		TScriptDelegate<> Delegate;
+		Delegate.BindUFunction(this, GET_FUNCTION_NAME_CHECKED(AASTCharacter, OnLoadGame));
+		pGI->m_OnLoadGame.Add(Delegate);
+
+	}
+
+	m_WalkingLastGroundedTf = m_WalkingNextToLastGroundedTf = GetActorTransform();
+
+}
+
+void AASTCharacter::OnLoadGame(const class UASTSaveGame *pSavegame)
+{
+	SetActorTransform(pSavegame->m_CurrentPlayerTransform);
+
 }
 
 void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode)
@@ -251,6 +269,12 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 	UE_LOG(AST_Movement, Verbose, TEXT("---------OnMovementChanged_Stats------------------\n CurrentMode: %01i, LastMode: %02i, CurrentCustom: %03i, LastCustom: %04i"), 
 		GetCharacterMovement()->MovementMode.GetValue(), PreviousMovementMode, GetCharacterMovement()->CustomMovementMode, PreviousCustomMode);
 	
+	if (PreviousMovementMode == MOVE_Walking)
+	{
+		//m_WalkingLastGroundedTf = GetActorTransform();
+
+	}
+
 	//Handling for custom movement modes
 	if ( PreviousMovementMode == MOVE_Custom )
 	{
@@ -282,7 +306,7 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 
 			//Null velocity so it does not influence gliding computations.
 			GetCharacterMovement()->Velocity = FVector::ZeroVector;
-
+			
 			//Safe the remaining jumps on gliding for restore.
 			m_PreGlideJumpCount = JumpCurrentCount;
 			UE_LOG(AST_Movement, Verbose, TEXT("Entering gliding movement"));
@@ -337,6 +361,15 @@ void AASTCharacter::OnMovementModeChanged(EMovementMode PreviousMovementMode, ui
 
 }
 
+FTransform AASTCharacter::GetSavedWalkingTransform() const
+{
+	static uint32 GetTimes{};
+	++GetTimes;
+
+	return GetTimes % 2 ? m_WalkingLastGroundedTf : m_WalkingNextToLastGroundedTf;
+
+
+}
 
 //Private-------------------------------
 void AASTCharacter::MoveRight(const float AxisValue)
@@ -386,9 +419,16 @@ void AASTCharacter::AddControlRotationYaw(float AxisValue)
 
 void AASTCharacter::StartGliding()
 {
-	if (auto *PC = Cast<AASTPlayerController>(Controller))
+	//Prevents instant transition from walking to gliding
+	//(and subsequently back to walking, which triggers all vx assets == bad)
+	if (GetCharacterMovement()->MovementMode == MOVE_Walking)
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Click"));
+		return;
+	}
+
+	auto *PC = Cast<AASTPlayerController>(Controller);
+	if (PC && m_bIsGlidingEnabled)
+	{
 		PC->EnableGlidingCamera();
 		GetCharacterMovement()->SetMovementMode(MOVE_Custom, (uint8)EASTMovementMode::Gliding);
 
@@ -435,7 +475,11 @@ void AASTCharacter::Jump()
 
 	}
 	*/
-	Super::Jump();
+	if (m_bIsJumpingEnabled)
+	{
+		Super::Jump();
+
+	}
 
 
 }
@@ -546,6 +590,8 @@ void AASTCharacter::TryTeleportToTeleball()
 
 void AASTCharacter::ProcessFootsteps()
 {
+	static uint32 StepCount{};
+	++StepCount;
 	if( auto *pCharMovement = Cast<UCharacterMovementComponent>(GetMovementComponent()) )
 	{
 		if ( pCharMovement->MovementMode == MOVE_Walking )
@@ -556,6 +602,15 @@ void AASTCharacter::ProcessFootsteps()
 			if (m_WalkingDistSinceFootstep >= m_WalkingStepSize)
 			{
 				m_WalkingDistSinceFootstep = 0;
+				if (StepCount % 2)
+				{
+					m_WalkingLastGroundedTf = GetActorTransform();
+				}
+				else
+				{
+					m_WalkingNextToLastGroundedTf = GetActorTransform();
+				}
+
 				OnFootstep();
 
 			}

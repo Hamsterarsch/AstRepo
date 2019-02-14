@@ -16,14 +16,48 @@ class ASCHOLARSTALE_API AStoryBook : public AActor
 public:	
 	AStoryBook();
 
+	virtual void PostInitializeComponents() override;
+
+	virtual void Tick(float DeltaTime) override;
+
 
 protected:
-	void StartOpenBook();
+	virtual void BeginPlay() override;
 	
-	void StartCloseBook();
-		
+	void UpdatePageTextures(uint32 FirstPageIndex);
+
+	//should be const
+	TArray<class UTexture2D *> *DetermineActiveTexSet();
+
+	UFUNCTION(BlueprintCallable)
+		void ReceiveOnOpenBook();
+
+	UFUNCTION(BlueprintCallable)
+		void ReceiveOnCloseBook();
+	
+	UFUNCTION(BlueprintCallable)
+		void FlipPageForward();
+
+	UFUNCTION(BlueprintCallable)
+		void FlipPageBack();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnOpenBook();
+			
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnCloseBook();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPageFlipForward();
+	
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPageFlipBackward();
+	   
+	UFUNCTION(BlueprintImplementableEvent)
+		void OnPageSelect(int32 PageForwardFlipCount);
+
 	UFUNCTION()
-		void OnPageSelect();
+		void ReceiveOnPageSelect();
 
 	UFUNCTION()
 		void OnTriggerBeginOverlap
@@ -39,12 +73,17 @@ protected:
 	UFUNCTION()
 		void OnTriggerEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp, int32 OtherBodyIndex);
 	
+	void PlayFlipAnim(bool bPlayForward);
+
+
+	UPROPERTY(EditAnywhere)
+		UAnimSequence *m_pAnimSequenceOpen;
+
+	UPROPERTY(EditAnywhere)
+		UAnimSequence *m_pAnimSequenceFlip;	
 
 	UPROPERTY(VisibleDefaultsOnly)
 		USkeletalMeshComponent *m_pSkelMesh;
-
-	UPROPERTY(VisibleDefaultsOnly)
-		UStaticMeshComponent *m_pPageMesh;
 
 	UPROPERTY(VisibleDefaultsOnly)
 		class USphereComponent *m_pTrigger;
@@ -52,10 +91,64 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 		bool m_bIsOpen;
 
-	bool m_bIsOverlapping;
+	UPROPERTY(EditAnywhere)
+		TArray<class UTexture2D *> m_aPageTextures;
 
-	UPROPERTY(BlueprintReadWrite)
-		FInteractCallbackSignature m_InteractDelegate;
+	UPROPERTY(EditAnywhere)
+		TArray<class UTexture2D *> m_aPageTexturesMineDone;
+
+	UPROPERTY(EditAnywhere)
+		TArray<class UTexture2D *> m_aPageTexturesOverride;
+
+	UPROPERTY(EditAnywhere)
+		FName m_SkelMaterialTargetParameterName;
+
+	UPROPERTY(EditAnywhere)
+		FName m_PageFrontMaterialTargetParameterName;
+
+	UPROPERTY(EditAnywhere)
+		FName m_PageBackMaterialTargetParameterName;
+	
+	UPROPERTY(EditAnywhere)
+		float m_PageFlippedRoll;
+	
+	UPROPERTY(BlueprintReadOnly)
+		bool m_bIsOverlapping;
+	
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pPageMat;
+	
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pPageBackMat;
+
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pSkelFrontMat;
+
+	UPROPERTY()
+		class UMaterialInstanceDynamic *m_pSkelBackMat;
+
+	FInteractCallbackSignature m_InteractDelegate;
+
+	int32 m_PageForwardFlipCountCurrent;
+
+	FTransform m_PageInitialTransform;
+
+	float m_PageTargetRoll;
+
+	const FName m_AnimSlotBody;
+
+	const FName m_AnimSlotPage;
+	
+	int32 m_PageForwardFlipCountMax;
+
+	bool m_bPageIsInForwardPos;
+
+	const float ANIM_POSITION_END{ 1 };
+	const float ANIM_POSITION_BEGIN{ 0 };
+	const float ANIM_PLAYRATE_FORWARD{ 1 };
+	const float ANIM_PLAYRATE_BACKWARD{ -1 };
+	const float ANIM_BLEND_TIME{ 0 };
+
 
 
 };

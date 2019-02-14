@@ -2,8 +2,9 @@
 
 #include "ASTBlueprintLib.h"
 #include "Engine.h"
-#include "Runtime/Engine/Classes/Engine/ObjectLibrary.h"
+#include "Framework/Application/SlateApplication.h"
 #include "Runtime/Engine/Classes/Engine/AssetManager.h"
+#include "Engine/Classes/Sound/SoundClass.h"
 
 
 UObject *UASTBlueprintLib::LoadObjectLibraryAssetAt(const int Index, const FString &Path)
@@ -44,12 +45,12 @@ TArray<UObject *> UASTBlueprintLib::LoadObjectLibrary(const FString &Path)
 
 }
 
-void UASTBlueprintLib::PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UWorld *pWorld)
+void UASTBlueprintLib::PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UObject *pContext)
 {
-	//Context.World()->PrepareMapChange(aLevelNames);
 	TArray<FName> aPackageNames{};
+	auto pWorld{ pContext->GetWorld() };
 
-	for (auto Itr = aLevelPaths.CreateConstIterator(); *Itr != aLevelPaths.Last(); ++Itr)
+	for (auto Itr = aLevelPaths.CreateConstIterator(); Itr; ++Itr)
 	{		
 		aPackageNames.Add(*Itr->GetLongPackageName());
 
@@ -64,13 +65,60 @@ void UASTBlueprintLib::PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPat
 
 }
 
-void UASTBlueprintLib::CommitMapChange(UWorld *pWorld)
+void UASTBlueprintLib::CommitMapChange(UObject *pContext)
 {
-	if (pWorld)
+	auto pWorld{ pContext->GetWorld() };
+
+	if ( pWorld && pWorld->IsMapChangeReady() && !IsAsyncLoading() )
 	{
 		pWorld->CommitMapChange();
+		
 	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("CommitWorldNull"));
+	}
+
 
 }
 
+bool UASTBlueprintLib::IsMapChangeReady(UObject *pContext)
+{
+	auto pWorld{ pContext->GetWorld() };
+
+	ensureMsgf(pWorld, TEXT("Could not get world"));
+
+	return pWorld->IsMapChangeReady() && !IsAsyncLoading() ;
+	
+
+}
+
+bool UASTBlueprintLib::GetIsGamepadConnected()
+{
+	auto &GenericApp{ FSlateApplication::Get() };// .GetPlatformApplication();
+
+	if (GenericApp.IsInitialized())
+	{
+		return GenericApp.IsGamepadAttached();
+
+	}
+	return false;
+	
+
+}
+
+void UASTBlueprintLib::SetVolumeMultiplier(class USoundClass *pSoundClass, float NewMultiplier)
+{
+	pSoundClass->Properties.Volume = NewMultiplier;
+
+
+}
+
+void UASTBlueprintLib::SetGlobalGamma(APlayerController *pPlayerController, float Percent)
+{
+	auto BiasedGamma = Percent * 2;
+	auto &POV{ pPlayerController->PlayerCameraManager->ViewTarget.POV };
+	POV.PostProcessSettings.ColorGamma = FVector4(BiasedGamma, BiasedGamma, BiasedGamma);
+
+}
 

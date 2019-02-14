@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "Runtime/Engine/Classes/Engine/ObjectLibrary.h"
 #include "ASTBlueprintLib.generated.h"
 
 /**
@@ -21,10 +22,43 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "ObjectLibrary")
 		static TArray<UObject *> LoadObjectLibrary(const FString &Path);
 	
-	UFUNCTION(BlueprintCallable)
-		static void PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UWorld *pWorld);
+	template<class AssetType>
+		static TArray<AssetType> LoadObjectLibraryTyped(const FString &Path);
 
 	UFUNCTION(BlueprintCallable)
-		static void CommitMapChange(UWorld *pWorld);
+		static void PrepareMapChange(const TArray<FSoftObjectPath> &aLevelPaths, UObject *pContext);
+
+	UFUNCTION(BlueprintCallable)
+		static void CommitMapChange(UObject *pContext);
+
+	UFUNCTION(BlueprintCallable)
+		static bool IsMapChangeReady(UObject *pContext);
+
+	UFUNCTION(BlueprintCallable)
+		static bool GetIsGamepadConnected();
+
+	UFUNCTION(BlueprintCallable)
+		static void SetVolumeMultiplier(class USoundClass *pSoundClass, float NewMultiplier);
+
+	UFUNCTION(BlueprintCallable)
+		static void SetGlobalGamma(APlayerController *pPlayerController, float Percent);
 
 };
+
+template<class AssetType>
+TArray<AssetType> UASTBlueprintLib::LoadObjectLibraryTyped(const FString &Path)
+{	
+	auto *ObjectLibrary = LoadObject<UObjectLibrary>(nullptr, *Path);
+	if (ObjectLibrary)
+	{
+		TArray<AssetType> LibraryAssets{};
+		ObjectLibrary->GetObjects(LibraryAssets);
+
+		return LibraryAssets;
+
+	}
+	return {};
+
+	
+
+}
